@@ -3,6 +3,10 @@ spring:
     name: file-service
   mongodb:
     uri: mongodb://root:root@localhost:27017/file-service?authSource=admin
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
 server:
   port: 8081
   servlet:
