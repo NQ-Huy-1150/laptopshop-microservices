@@ -6,27 +6,30 @@ import com.laptopshop.identityservice.dto.response.ApiResponse;
 import com.laptopshop.identityservice.dto.response.UserCreationResponse;
 import com.laptopshop.identityservice.dto.response.UserUpdateResponse;
 import com.laptopshop.identityservice.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/user")
+@RequestMapping("/users")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class UserController {
     UserService userService;
 
-    @PostMapping
-    public ApiResponse<UserCreationResponse> create(@RequestBody UserCreationRequest request) {
+    @PostMapping("/registration")
+    public ApiResponse<UserCreationResponse> create(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserCreationResponse>builder()
                 .result(this.userService.create(request))
                 .build();
     }
 
     @PutMapping("/update")
-    public ApiResponse<UserUpdateResponse> update(@RequestBody UserUpdateRequest request) {
+    public ApiResponse<UserUpdateResponse> update(@RequestBody @Valid UserUpdateRequest request) {
         return ApiResponse.<UserUpdateResponse>builder()
                 .result(this.userService.update(request))
                 .build();
@@ -37,6 +40,13 @@ public class UserController {
         this.userService.delete(id);
         return ApiResponse.builder()
                 .message("Delete Successfully")
+                .build();
+    }
+
+    @GetMapping
+    public ApiResponse<List<UserCreationResponse>> fetchAllUsers() {
+        return ApiResponse.<List<UserCreationResponse>>builder()
+                .result(this.userService.getAllUsers())
                 .build();
     }
 }

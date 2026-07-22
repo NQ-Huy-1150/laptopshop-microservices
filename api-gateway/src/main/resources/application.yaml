@@ -1,0 +1,27 @@
+server:
+  port: 8888
+
+app:
+  prefix: /api/v1
+  identity-service: http://localhost:8080
+  file-service: http://localhost:8081
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: identity-service
+              uri: ${app.identity-service}
+              predicates:
+                - Path=${app.prefix}/identity/**
+              filters:
+                - StripPrefix=2
+            - id: file-service
+              uri: ${app.file-service}
+              predicates:
+                - Path=${app.prefix}/file/**
+              filters:
+                - StripPrefix=2
