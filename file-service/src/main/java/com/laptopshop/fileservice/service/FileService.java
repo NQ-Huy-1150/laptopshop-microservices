@@ -17,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -39,6 +41,26 @@ public class FileService {
                 .name(file.getOriginalFilename())
                 .url(fileInfo.getUrl())
                 .build();
+    }
+
+    public List<FileResponse> uploadMultipleFile(MultipartFile[] files) throws IOException {
+        log.info("Upload multiple files to file service");
+        List<FileResponse> fileResponses = new ArrayList<>();
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        for (MultipartFile file : files) {
+            var fileInfo = this.fileRepository.store(file);
+            FileMgmt fileMgmt = this.fIleMapper.toFileMgmt(fileInfo);
+            fileMgmt.setOwnerId(userId);
+            this.fileMgmtRepository.save(fileMgmt);
+            var response = FileResponse.builder()
+                    .name(file.getOriginalFilename())
+                    .url(fileInfo.getUrl())
+                    .build();
+            fileResponses.add(response);
+        }
+        log.info("FileResponse : {}", fileResponses);
+        return fileResponses;
+
     }
 
     public FileMetadata download(String name) throws IOException {

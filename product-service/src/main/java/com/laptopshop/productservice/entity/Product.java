@@ -6,6 +6,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -23,6 +24,6 @@ public class Product {
     String description;
     BigDecimal price;
     String brand;
-    String imgUrl;
+    List<String> imgUrls;
     Set<String> categoryIds;
 }

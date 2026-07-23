@@ -18,6 +18,6 @@ public class ProductResponse {
     String description;
     BigDecimal price;
     String brand;
-    String imgUrl;
+    List<String> imgUrls;
     List<String> categoryIds;
 }

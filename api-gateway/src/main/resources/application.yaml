@@ -5,6 +5,7 @@ app:
   prefix: /api/v1
   identity-service: http://localhost:8080
   file-service: http://localhost:8081
+  product-service: http://localhost:8082
 spring:
   application:
     name: api-gateway
@@ -23,5 +24,11 @@ spring:
               uri: ${app.file-service}
               predicates:
                 - Path=${app.prefix}/file/**
+              filters:
+                - StripPrefix=2
+            - id: product-service
+              uri: ${app.product-service}
+              predicates:
+                - Path=${app.prefix}/product/**
               filters:
                 - StripPrefix=2
