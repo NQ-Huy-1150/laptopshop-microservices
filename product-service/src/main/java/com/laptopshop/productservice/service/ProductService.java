@@ -1,9 +1,11 @@
 package com.laptopshop.productservice.service;
 
 import com.laptopshop.productservice.dto.request.ProductCreationRequest;
+import com.laptopshop.productservice.dto.request.ProductInfoRequest;
 import com.laptopshop.productservice.dto.request.ProductUpdateRequest;
 import com.laptopshop.productservice.dto.response.ApiResponse;
 import com.laptopshop.productservice.dto.response.FileResponse;
+import com.laptopshop.productservice.dto.response.ProductInfoResponse;
 import com.laptopshop.productservice.dto.response.ProductResponse;
 import com.laptopshop.productservice.entity.Category;
 import com.laptopshop.productservice.entity.Product;
@@ -69,6 +71,15 @@ public class ProductService {
                 .stream().map(Category::getId).collect(Collectors.toSet());
         product.setCategoryIds(categories);
         return mapper.toResponse(productRepository.save(product));
+    }
+
+    public ProductInfoResponse getInfo(ProductInfoRequest request) {
+        var data = productRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        return ProductInfoResponse.builder()
+                .id(data.getId())
+                .price(data.getPrice())
+                .build();
     }
 
     public void delete(String id) {

@@ -6,6 +6,8 @@ app:
   identity-service: http://localhost:8080
   file-service: http://localhost:8081
   product-service: http://localhost:8082
+  inventory-service: http://localhost:8083
+  order-service: http://localhost:8084
 spring:
   application:
     name: api-gateway
@@ -30,5 +32,17 @@ spring:
               uri: ${app.product-service}
               predicates:
                 - Path=${app.prefix}/product/**
+              filters:
+                - StripPrefix=2
+            - id: inventory-service
+              uri: ${app.inventory-service}
+              predicates:
+                - Path=${app.prefix}/inventory/**
+              filters:
+                - StripPrefix=2
+            - id: order-service
+              uri: ${app.order-service}
+              predicates:
+                - Path=${app.prefix}/order/**
               filters:
                 - StripPrefix=2

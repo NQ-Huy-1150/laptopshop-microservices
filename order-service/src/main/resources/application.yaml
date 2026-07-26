@@ -1,8 +1,8 @@
 spring:
   application:
-    name: inventory-service
+    name: order-service
   datasource:
-    url: jdbc:mysql://localhost:3306/laptopshop_inventory
+    url: jdbc:mysql://localhost:3306/laptopshop_order
     username: root
     password: root
   jpa:
@@ -21,9 +21,9 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.laptopshop.event.dto
-
-
 server:
-  port: 8083
+  port: 8084
   servlet:
-    context-path: /inventory
+    context-path: /order
+app:
+  product-service: http://localhost:8082

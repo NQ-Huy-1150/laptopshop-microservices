@@ -1,0 +1,7 @@
+package com.laptopshop.orderservice.enums;
+
+public enum Status {
+    PENDING,
+    SUCCESS,
+    FAILED,
+}

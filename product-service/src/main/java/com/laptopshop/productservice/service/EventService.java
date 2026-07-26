@@ -3,6 +3,8 @@ package com.laptopshop.productservice.service;
 import com.laptopshop.event.dto.AddStockEvent;
 import com.laptopshop.event.dto.AddStockResponse;
 import com.laptopshop.productservice.dto.request.ProductCreationRequest;
+import com.laptopshop.productservice.dto.request.ProductInfoRequest;
+import com.laptopshop.productservice.dto.response.ProductInfoResponse;
 import com.laptopshop.productservice.dto.response.ProductResponse;
 import com.laptopshop.productservice.entity.Product;
 import com.laptopshop.productservice.enums.Status;
@@ -61,5 +63,22 @@ public class EventService {
             product.setStatus(Status.FAILED.name());
         }
         productRepository.save(product);
+    }
+
+    @KafkaListener(topics = "product-info-request")
+    public void handleProductInfoRequest(ProductInfoRequest request) {
+        log.info("Received product info with id : {}", request.getId());
+        var product = productRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        ProductInfoResponse productInfoResponse = ProductInfoResponse.builder()
+                .id(product.getId())
+                .price(product.getPrice())
+                .build();
+        try {
+            kafkaTemplate.send("product-info-response", productInfoResponse);
+            log.info("Retrieved successfully");
+        } catch (Exception e) {
+            log.error("Error while response message : {}", e.getMessage());
+        }
     }
 }

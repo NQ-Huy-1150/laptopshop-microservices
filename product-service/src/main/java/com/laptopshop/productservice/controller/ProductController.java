@@ -1,8 +1,10 @@
 package com.laptopshop.productservice.controller;
 
 import com.laptopshop.productservice.dto.request.ProductCreationRequest;
+import com.laptopshop.productservice.dto.request.ProductInfoRequest;
 import com.laptopshop.productservice.dto.request.ProductUpdateRequest;
 import com.laptopshop.productservice.dto.response.ApiResponse;
+import com.laptopshop.productservice.dto.response.ProductInfoResponse;
 import com.laptopshop.productservice.dto.response.ProductResponse;
 import com.laptopshop.productservice.service.EventService;
 import com.laptopshop.productservice.service.ProductService;
@@ -29,6 +31,13 @@ public class ProductController {
     ApiResponse<List<ProductResponse>> findAll() {
         return ApiResponse.<List<ProductResponse>>builder()
                 .result(productService.findAll())
+                .build();
+    }
+
+    @PostMapping("/info")
+    ApiResponse<ProductInfoResponse> getInfo(@RequestBody ProductInfoRequest productInfoRequest) {
+        return ApiResponse.<ProductInfoResponse>builder()
+                .result(productService.getInfo(productInfoRequest))
                 .build();
     }
 
