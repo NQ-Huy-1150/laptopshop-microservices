@@ -24,6 +24,7 @@ public class Product {
     String description;
     BigDecimal price;
     String brand;
+    String status;
     List<String> imgUrls;
     Set<String> categoryIds;
 }

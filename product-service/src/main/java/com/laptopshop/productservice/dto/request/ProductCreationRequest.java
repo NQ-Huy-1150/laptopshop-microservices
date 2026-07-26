@@ -1,6 +1,7 @@
 package com.laptopshop.productservice.dto.request;
 
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -24,5 +25,7 @@ public class ProductCreationRequest {
     BigDecimal price;
     @NotEmpty(message = "PRODUCT_BRAND_INVALID")
     String brand;
+    @Min(value = 1, message = "QUANTITY_INVALID")
+    long quantity;
     List<String> categoryIds;
 }

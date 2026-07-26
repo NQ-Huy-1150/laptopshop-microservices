@@ -17,6 +17,7 @@ public class ProductResponse {
     String specs;
     String description;
     BigDecimal price;
+    long quantity;
     String brand;
     List<String> imgUrls;
     List<String> categoryIds;

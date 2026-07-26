@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class SecurityConfig {
     String[] PUBLIC_ENDPOINTS = {
-            "/media/download/**"
+            "/media/download/**", "/media/excel"
     };
     CustomJwtDecoder customJwtDecoder;
 

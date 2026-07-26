@@ -17,6 +17,7 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
     private static final String MIN_ATTRIBUTE = "min";
+    private static final String VALUE_ATTRIBUTE = "value";
 
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<?> runtimeExceptionHandler(RuntimeException e) {
@@ -73,7 +74,12 @@ public class GlobalExceptionHandler {
 
 
     private String bindingAttributes(String message, Map<String, Object> attributes) {
-        String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
+        String minValue = "";
+        if (attributes.containsKey(MIN_ATTRIBUTE)) {
+            minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
+        } else if (attributes.containsKey(VALUE_ATTRIBUTE)) {
+            minValue = String.valueOf(attributes.get(VALUE_ATTRIBUTE));
+        }
         return message.replace("{" + MIN_ATTRIBUTE + "}", minValue);
 
     }

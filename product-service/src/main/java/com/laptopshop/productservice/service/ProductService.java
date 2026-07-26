@@ -2,10 +2,12 @@ package com.laptopshop.productservice.service;
 
 import com.laptopshop.productservice.dto.request.ProductCreationRequest;
 import com.laptopshop.productservice.dto.request.ProductUpdateRequest;
+import com.laptopshop.productservice.dto.response.ApiResponse;
 import com.laptopshop.productservice.dto.response.FileResponse;
 import com.laptopshop.productservice.dto.response.ProductResponse;
 import com.laptopshop.productservice.entity.Category;
 import com.laptopshop.productservice.entity.Product;
+import com.laptopshop.productservice.enums.Status;
 import com.laptopshop.productservice.exception.AppException;
 import com.laptopshop.productservice.exception.ErrorCode;
 import com.laptopshop.productservice.mapper.ProductMapper;
@@ -17,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -32,8 +35,14 @@ public class ProductService {
     ProductMapper mapper;
     FileClient fileClient;
 
+    @Transactional
     public ProductResponse create(MultipartFile[] files, ProductCreationRequest request) {
-        var fileResponses = fileClient.uploads(files);
+        ApiResponse<List<FileResponse>> fileResponses = null;
+        try {
+            fileResponses = fileClient.uploads(files);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         var imgUrls = fileResponses.getResult().stream().map(FileResponse::getUrl).toList();
         log.info("Image urls : {}", imgUrls);
         Product product = mapper.toProduct(request);
@@ -41,7 +50,11 @@ public class ProductService {
                 .stream().map(Category::getId).collect(Collectors.toSet());
         product.setCategoryIds(categories);
         product.setImgUrls(imgUrls);
-        return mapper.toResponse(productRepository.save(product));
+        // set product status for event handling
+        product.setStatus(Status.PENDING.name());
+        ProductResponse productResponse = mapper.toResponse(productRepository.save(product));
+        productResponse.setQuantity(request.getQuantity());
+        return productResponse;
     }
 
     public ProductResponse update(ProductUpdateRequest request) {
@@ -54,7 +67,6 @@ public class ProductService {
         product.setBrand(request.getBrand());
         var categories = categoryRepository.findAllById(request.getCategoryIds())
                 .stream().map(Category::getId).collect(Collectors.toSet());
-        product.setCategoryIds(categories);
         product.setCategoryIds(categories);
         return mapper.toResponse(productRepository.save(product));
     }

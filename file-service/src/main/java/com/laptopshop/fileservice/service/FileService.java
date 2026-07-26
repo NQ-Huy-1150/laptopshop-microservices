@@ -3,6 +3,7 @@ package com.laptopshop.fileservice.service;
 import com.laptopshop.fileservice.Mapper.FIleMapper;
 import com.laptopshop.fileservice.dto.response.FileMetadata;
 import com.laptopshop.fileservice.dto.response.FileResponse;
+import com.laptopshop.fileservice.dto.response.Product;
 import com.laptopshop.fileservice.entity.FileMgmt;
 import com.laptopshop.fileservice.exception.AppException;
 import com.laptopshop.fileservice.exception.ErrorCode;
@@ -42,6 +43,18 @@ public class FileService {
                 .url(fileInfo.getUrl())
                 .build();
     }
+
+    public List<Product> uploadExcel(MultipartFile file) throws IOException {
+        var fileInfo = this.fileRepository.store(file);
+        //getOwnerId
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        //create FIleMgmt
+        FileMgmt fileMgmt = this.fIleMapper.toFileMgmt(fileInfo);
+        fileMgmt.setOwnerId(userId);
+        fileMgmt = this.fileMgmtRepository.save(fileMgmt);
+        return this.fileRepository.parseExcel(fileMgmt);
+    }
+
 
     public List<FileResponse> uploadMultipleFile(MultipartFile[] files) throws IOException {
         log.info("Upload multiple files to file service");

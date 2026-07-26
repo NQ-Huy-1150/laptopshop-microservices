@@ -4,6 +4,7 @@ import com.laptopshop.productservice.dto.request.ProductCreationRequest;
 import com.laptopshop.productservice.dto.request.ProductUpdateRequest;
 import com.laptopshop.productservice.dto.response.ApiResponse;
 import com.laptopshop.productservice.dto.response.ProductResponse;
+import com.laptopshop.productservice.service.EventService;
 import com.laptopshop.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -22,6 +23,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductController {
     ProductService productService;
+    EventService eventService;
 
     @GetMapping
     ApiResponse<List<ProductResponse>> findAll() {
@@ -37,7 +39,7 @@ public class ProductController {
     ) {
         log.info("number of files: {}", files.length);
         return ApiResponse.<ProductResponse>builder()
-                .result(productService.create(files, request))
+                .result(eventService.handleCreateEvent(files, request))
                 .build();
     }
 

@@ -25,6 +25,7 @@ public enum ErrorCode {
     PRODUCT_DESCRIPTION_INVALID(1027, "Product description can not be empty", HttpStatus.BAD_REQUEST),
     PRODUCT_PRICE_INVALID(1028, "Product price must greater or equal 0", HttpStatus.BAD_REQUEST),
     PRODUCT_ID_INVALID(1029, "Product id can not be empty", HttpStatus.BAD_REQUEST),
+    QUANTITY_INVALID(1021, "Quantity must be at least {min}", HttpStatus.BAD_REQUEST),
     ;
 
     int code;

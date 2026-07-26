@@ -31,6 +31,13 @@ public class FileController {
                 .build();
     }
 
+    @PostMapping("/excel")
+    public ApiResponse<?> excel(@RequestParam("file") MultipartFile file) throws IOException {
+        return ApiResponse.builder()
+                .result(this.fileService.uploadExcel(file))
+                .build();
+    }
+
     @PostMapping("/uploads")
     public ApiResponse<List<FileResponse>> uploads(@RequestParam("files") MultipartFile[] files) throws IOException {
         log.info("received files: {}", files.length);
