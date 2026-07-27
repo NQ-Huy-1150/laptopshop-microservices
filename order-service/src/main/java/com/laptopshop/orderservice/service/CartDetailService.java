@@ -10,6 +10,7 @@ import com.laptopshop.orderservice.entity.CartDetail;
 import com.laptopshop.orderservice.exception.AppException;
 import com.laptopshop.orderservice.exception.ErrorCode;
 import com.laptopshop.orderservice.repository.CartDetailRepository;
+import com.laptopshop.orderservice.repository.CartRepository;
 import com.laptopshop.orderservice.repository.httpClient.ProductClient;
 import feign.FeignException;
 import jakarta.transaction.Transactional;
@@ -20,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -27,6 +30,7 @@ import org.springframework.stereotype.Service;
 public class CartDetailService {
     CartDetailRepository cartDetailRepository;
     ProductClient productClient;
+    CartRepository cartRepository;
 
     @Transactional
     public CartDetail create(CartDetailCreationRequest request, Cart cart) {
@@ -52,12 +56,17 @@ public class CartDetailService {
     }
 
     @Transactional
-    public void updateCartDetail(CartDetailUpdateRequest request) {
+    public void updateCartDetail(CartDetailUpdateRequest request, boolean isManualUpdate) {
         var cartDetail = cartDetailRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.CART_DETAIL_NOT_FOUND));
         var userId = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (cartDetail.getCart().getUserId().equals(userId)) {
+        var cart = cartDetail.getCart();
+        if (cart.getUserId().equals(userId)) {
             cartDetail.setQuantity(request.getQuantity());
+            if (isManualUpdate) {
+                cart.setUpdatedAt(LocalDateTime.now());
+                cartRepository.save(cart);
+            }
         } else throw new AppException(ErrorCode.CART_DETAIL_NOT_FOUND);
         cartDetailRepository.save(cartDetail);
     }

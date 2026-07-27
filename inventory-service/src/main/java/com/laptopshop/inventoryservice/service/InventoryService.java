@@ -47,23 +47,18 @@ public class InventoryService {
 
     @Transactional
     public InventoryResponse stockIssue(StockIssueRequest request) {
-        try {
-            Inventory inventory = new Inventory();
-            Optional<Inventory> optional = inventoryRepository.findById(request.getProductId());
-            if (optional.isEmpty()) {
-                throw new RuntimeException("Product not found");
-            } else {
-                inventory = optional.get();
-                if (inventory.getStock() < request.getQuantity()) {
-                    throw new AppException(ErrorCode.NEGATIVE_STOCK);
-                }
-                inventory.setStock(inventory.getStock() - request.getQuantity());
-                inventory.setStockIssue(inventory.getStockIssue() + request.getQuantity());
-                return inventoryMapper.toInventoryResponse(inventoryRepository.save(inventory));
+        Inventory inventory = new Inventory();
+        Optional<Inventory> optional = inventoryRepository.findById(request.getProductId());
+        if (optional.isEmpty()) {
+            throw new AppException(ErrorCode.PRODUCT_NOT_FOUND);
+        } else {
+            inventory = optional.get();
+            if (inventory.getStock() < request.getQuantity()) {
+                throw new AppException(ErrorCode.NEGATIVE_STOCK);
             }
-        } catch (RuntimeException e) {
-            // send error status to product
-            throw e;
+            inventory.setStock(inventory.getStock() - request.getQuantity());
+            inventory.setStockIssue(inventory.getStockIssue() + request.getQuantity());
+            return inventoryMapper.toInventoryResponse(inventoryRepository.save(inventory));
         }
     }
 }

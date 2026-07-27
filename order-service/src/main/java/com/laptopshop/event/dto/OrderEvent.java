@@ -1,30 +1,24 @@
-package com.laptopshop.orderservice.entity;
+package com.laptopshop.event.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import com.laptopshop.orderservice.dto.response.OrderDetailResponse;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @Builder
-@Entity
-@Table(name = "orders")
-public class Order {
-    @Id
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class OrderEvent {
     String id;
     String status;
     String userId;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     @OneToMany(mappedBy = "order", orphanRemoval = true)
-    List<OrderDetail> orderDetails;
+    List<OrderDetailResponse> orderDetails;
 }

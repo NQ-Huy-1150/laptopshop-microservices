@@ -54,11 +54,10 @@ public class CartService {
             request.getCartDetails().forEach(cartDetail -> {
                 for (CartDetail currentCartDetail : finalCartDetails) {
                     if (currentCartDetail.getProductId().equals(cartDetail.getProductId())) {
-                        currentCartDetail.setQuantity(currentCartDetail.getQuantity() + cartDetail.getQuantity());
                         cartDetailService.updateCartDetail(CartDetailUpdateRequest.builder()
                                 .id(currentCartDetail.getId())
                                 .quantity(currentCartDetail.getQuantity() + cartDetail.getQuantity())
-                                .build());
+                                .build(), false);
                         return;
                     }
                 }

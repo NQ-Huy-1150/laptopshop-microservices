@@ -2,6 +2,9 @@ package com.laptopshop.inventoryservice.service;
 
 import com.laptopshop.event.dto.AddStockEvent;
 import com.laptopshop.event.dto.AddStockResponse;
+import com.laptopshop.event.dto.OrderEvent;
+import com.laptopshop.event.dto.StockIssueResponse;
+import com.laptopshop.inventoryservice.dto.request.StockIssueRequest;
 import com.laptopshop.inventoryservice.entity.ProcessedProduct;
 import com.laptopshop.inventoryservice.repository.ProcessedProductRepository;
 import jakarta.transaction.Transactional;
@@ -52,6 +55,36 @@ public class EventService {
             throw e;
         }
 
+    }
+
+    @KafkaListener(topics = "order-created")
+    @Transactional
+    public void handleOrderEvent(OrderEvent orderEvent) {
+        log.info("Received Order Event : {}", orderEvent);
+        try {
+            orderEvent.getOrderDetails().forEach(orderDetail -> {
+                inventoryService.stockIssue(StockIssueRequest.builder()
+                        .productId(orderDetail.getProductId())
+                        .quantity(orderDetail.getQuantity())
+                        .build());
+            });
+            sendStockIssueStatus(StockIssueResponse.builder()
+                    .orderId(orderEvent.getId())
+                    .isSuccess(true)
+                    .build());
+            log.info("Stock issue success");
+        } catch (RuntimeException e) {
+            sendStockIssueStatus(StockIssueResponse.builder()
+                    .orderId(orderEvent.getId())
+                    .isSuccess(false)
+                    .build());
+            log.error("Failed to issue stock", e);
+            throw e;
+        }
+    }
+
+    public void sendStockIssueStatus(StockIssueResponse response) {
+        kafkaTemplate.send("stock-issue-status", response);
     }
 
     public void sendAddStockEventStatus(AddStockResponse response) {

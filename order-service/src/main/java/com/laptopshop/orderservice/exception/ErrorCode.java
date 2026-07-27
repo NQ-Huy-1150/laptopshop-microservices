@@ -16,6 +16,8 @@ public enum ErrorCode {
     JWT_PARSE_ERROR(1018, "Invalid JWT token", HttpStatus.BAD_REQUEST),
     CART_DETAIL_NOT_FOUND(1024, "Cart detail not found", HttpStatus.NOT_FOUND),
     CANT_GET_PRODUCT_INFO(1025, "cannot get product info", HttpStatus.BAD_REQUEST),
+    CURRENT_CART_NOT_FOUND(1026, "Current cart not found", HttpStatus.NOT_FOUND),
+    ORDER_NOT_FOUND(1027, "Order not found", HttpStatus.NOT_FOUND),
     ;
 
     int code;

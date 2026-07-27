@@ -19,7 +19,7 @@ public class CartDetailController {
     @PutMapping
     public ApiResponse<CartDetailResponse> updateCartDetail(
             @RequestBody CartDetailUpdateRequest request) {
-        cartDetailService.updateCartDetail(request);
+        cartDetailService.updateCartDetail(request, true);
         return ApiResponse.<CartDetailResponse>builder().build();
     }
 

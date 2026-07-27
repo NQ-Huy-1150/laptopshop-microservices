@@ -43,6 +43,6 @@ spring:
             - id: order-service
               uri: ${app.order-service}
               predicates:
-                - Path=${app.prefix}/order/**
+                - Path=${app.prefix}/order/**, ${app.prefix}/order
               filters:
                 - StripPrefix=2
