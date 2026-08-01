@@ -43,10 +43,11 @@ public class ProductController {
 
     @PostMapping
     ApiResponse<ProductResponse> create(
-            @RequestParam("files") MultipartFile[] files,
+            @RequestPart("files") MultipartFile[] files,
             @RequestPart("request") @Valid ProductCreationRequest request
     ) {
         log.info("number of files: {}", files.length);
+        log.info("brand : {}", request.getBrand());
         return ApiResponse.<ProductResponse>builder()
                 .result(eventService.handleCreateEvent(files, request))
                 .build();

@@ -1,8 +1,12 @@
-import { Row, Col, Button, Form, Modal } from "react-bootstrap";
+import { Row, Col, Button, Form, Modal, Spinner } from "react-bootstrap";
 import { Formik } from 'formik';
 import * as yup from 'yup';
+import { login } from "../../services/AuthenticationService";
+import { useNavigate } from 'react-router-dom';
 
-export default function LoginForm({ show, handleClose, switchToRegister }) {
+export default function LoginForm({ show, handleClose, switchToRegister, onLoginSuccess }) {
+    const navigate = useNavigate();
+
     const schema = yup.object().shape({
         username: yup.string().required('Tên đăng nhập không được để trống'),
         password: yup.string().required('Mật khẩu không được để trống'),
@@ -11,7 +15,6 @@ export default function LoginForm({ show, handleClose, switchToRegister }) {
     return (
         <Modal
             show={show}
-            dialogClassName="modal-50w"
             onHide={handleClose}
             aria-labelledby="contained-modal-title-vcenter"
             centered
@@ -24,18 +27,30 @@ export default function LoginForm({ show, handleClose, switchToRegister }) {
             <Modal.Body>
                 <Formik
                     validationSchema={schema}
-                    onSubmit={(values) => {
-                        console.log('Form submitted:', values);
-                        handleClose();
-                    }}
                     initialValues={{
                         username: '',
                         password: '',
                     }}
-                >
-                    {({ handleSubmit, handleChange, values, touched, errors }) => (
-                        <Form noValidate onSubmit={handleSubmit}>
+                    onSubmit={async (values, { setSubmitting, setFieldError }) => {
+                        try {
+                            await login(values);
 
+                            handleClose();
+
+                            if (onLoginSuccess) {
+                                onLoginSuccess();
+                            }
+                            navigate('/');
+                        } catch (error) {
+                            console.error("Login failed:", error);
+                            setFieldError('password', 'Tên đăng nhập hoặc mật khẩu không chính xác');
+                        } finally {
+                            setSubmitting(false);
+                        }
+                    }}
+                >
+                    {({ handleSubmit, handleChange, values, touched, errors, isSubmitting }) => (
+                        <Form noValidate onSubmit={handleSubmit}>
                             <Row className="mb-3">
                                 <Form.Group as={Col} lg={12} className="mb-3">
                                     <Form.Label>Tên đăng nhập</Form.Label>
@@ -75,11 +90,18 @@ export default function LoginForm({ show, handleClose, switchToRegister }) {
                                     </span>
                                 </span>
                                 <div className="d-flex gap-2">
-                                    <Button variant="secondary" onClick={handleClose}>
+                                    <Button variant="secondary" onClick={handleClose} disabled={isSubmitting}>
                                         Hủy
                                     </Button>
-                                    <Button type="submit" variant="primary">
-                                        Đăng Nhập
+                                    <Button type="submit" variant="primary" disabled={isSubmitting}>
+                                        {isSubmitting ? (
+                                            <>
+                                                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-1" />
+                                                Đang xử lý...
+                                            </>
+                                        ) : (
+                                            'Đăng Nhập'
+                                        )}
                                     </Button>
                                 </div>
                             </div>

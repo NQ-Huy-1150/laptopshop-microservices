@@ -3,6 +3,7 @@ package com.laptopshop.identityservice.exception;
 import com.laptopshop.identityservice.dto.response.ApiResponse;
 import jakarta.validation.ConstraintViolation;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -70,11 +71,18 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(errorCode.getStatus())
                 .body(response);
     }
-    
+
 
     private String bindingAttributes(String message, Map<String, Object> attributes) {
         String minValue = String.valueOf(attributes.get(MIN_ATTRIBUTE));
         return message.replace("{" + MIN_ATTRIBUTE + "}", minValue);
 
+    }
+
+    @ExceptionHandler(value = DataIntegrityViolationException.class)
+    public ResponseEntity<?> dataIntegrityViolationExceptionHandler(DataIntegrityViolationException e) {
+        ApiResponse<String> response = new ApiResponse<>();
+        response.setResult(e.toString());
+        return ResponseEntity.badRequest().body(response);
     }
 }

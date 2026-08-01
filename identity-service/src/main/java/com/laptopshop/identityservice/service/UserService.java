@@ -3,6 +3,7 @@ package com.laptopshop.identityservice.service;
 import com.laptopshop.identityservice.dto.request.UserCreationRequest;
 import com.laptopshop.identityservice.dto.request.UserUpdateRequest;
 import com.laptopshop.identityservice.dto.response.UserCreationResponse;
+import com.laptopshop.identityservice.dto.response.UserInfo;
 import com.laptopshop.identityservice.dto.response.UserUpdateResponse;
 import com.laptopshop.identityservice.entity.Role;
 import com.laptopshop.identityservice.entity.User;
@@ -12,6 +13,7 @@ import com.laptopshop.identityservice.exception.ErrorCode;
 import com.laptopshop.identityservice.mapper.UserMapper;
 import com.laptopshop.identityservice.repository.RoleRepository;
 import com.laptopshop.identityservice.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -33,12 +35,14 @@ public class UserService {
     RoleRepository roleRepository;
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
+    AuthenticationService authenticationService;
 
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserCreationResponse> getAllUsers() {
         return this.userRepository.findAll().stream().map(userMapper::toCreateResponse).toList();
     }
 
+    @Transactional
     public UserCreationResponse create(UserCreationRequest request) {
         User user = userMapper.toCreateUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -47,9 +51,14 @@ public class UserService {
         Set<Role> roles = new HashSet<>();
         roles.add(role);
         user.setRoles(roles);
-        return userMapper.toCreateResponse(this.userRepository.save(user));
+        user = this.userRepository.save(user);
+        var response = userMapper.toCreateResponse(user);
+        var token = authenticationService.generateToken(user);
+        response.setToken(token);
+        return response;
     }
 
+    @Transactional
     public UserUpdateResponse update(UserUpdateRequest request) {
         User user = this.userRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
@@ -62,10 +71,26 @@ public class UserService {
         return this.userMapper.toUpdateResponse(this.userRepository.save(user));
     }
 
+    @Transactional
     public void delete(String id) {
         if (!this.userRepository.existsById(id)) {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
         this.userRepository.deleteById(id);
+    }
+
+    @PreAuthorize("#id == authentication.name")
+    public UserInfo getUserInfo(String id) {
+        log.info("get owner info successfully");
+        User user = this.userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return UserInfo.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .build();
     }
 }

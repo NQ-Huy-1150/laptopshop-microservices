@@ -8,6 +8,7 @@ import com.laptopshop.identityservice.exception.AppException;
 import com.laptopshop.identityservice.exception.ErrorCode;
 import com.laptopshop.identityservice.mapper.PermissionMapper;
 import com.laptopshop.identityservice.repository.PermissionRepository;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,12 +32,14 @@ public class PermissionService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public PermissionResponse create(PermissionCreationRequest request) {
         Permission permission = this.mapper.toPermission(request);
         return this.mapper.toResponse(this.permissionRepository.save(permission));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public PermissionResponse update(PermissionUpdateRequest request) {
         var permission = this.permissionRepository.findById(request.getName())
                 .orElseThrow((() -> new AppException(ErrorCode.PERMISSION_NOT_FOUND)));
@@ -45,6 +48,7 @@ public class PermissionService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public void delete(String id) {
         if (!this.permissionRepository.existsById(id)) {
             throw new AppException(ErrorCode.PERMISSION_NOT_FOUND);

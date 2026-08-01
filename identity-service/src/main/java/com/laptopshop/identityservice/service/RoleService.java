@@ -10,6 +10,7 @@ import com.laptopshop.identityservice.exception.ErrorCode;
 import com.laptopshop.identityservice.mapper.RoleMapper;
 import com.laptopshop.identityservice.repository.PermissionRepository;
 import com.laptopshop.identityservice.repository.RoleRepository;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +31,7 @@ public class RoleService {
     RoleMapper mapper;
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public RoleResponse create(RoleCreationRequest request) {
         Role role = this.mapper.toRole(request);
         List<Permission> permissions = this.permissionRepository.findAllById(request.getPermissions());
@@ -38,6 +40,7 @@ public class RoleService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public RoleResponse update(RoleUpdateRequest request) {
         Role role = this.roleRepository.findById(request.getName())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
@@ -48,6 +51,7 @@ public class RoleService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
     public void delete(String id) {
         if (!this.roleRepository.existsById(id)) {
             throw new AppException(ErrorCode.ROLE_NOT_FOUND);

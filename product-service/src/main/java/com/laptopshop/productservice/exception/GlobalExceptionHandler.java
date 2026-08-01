@@ -21,7 +21,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(value = RuntimeException.class)
     ResponseEntity<?> runtimeExceptionHandler(RuntimeException e) {
-        return ResponseEntity.badRequest().body("UNCATALOGUED ERROR : " + e.getMessage());
+        return ResponseEntity.badRequest().body("UNCATALOGUED ERROR : " + e);
     }
 
     @ExceptionHandler(value = AppException.class)

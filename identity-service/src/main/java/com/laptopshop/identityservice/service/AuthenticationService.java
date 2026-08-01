@@ -93,6 +93,7 @@ public class AuthenticationService {
                     .expirationTime(signedJWT.getJWTClaimsSet().getExpirationTime())
                     .build();
             this.invalidatedTokenRepository.save(invalidatedToken);
+            log.info("logout successful");
         } catch (AppException | ParseException e) {
             log.info("if invalid token ~ already logout");
         }
@@ -121,7 +122,7 @@ public class AuthenticationService {
         }
     }
 
-    private String generateToken(User user) {
+    public String generateToken(User user) {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
         JWTClaimsSet jwtClaimsSet = new JWTClaimsSet.Builder()
                 .subject(user.getId())

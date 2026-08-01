@@ -1,28 +1,99 @@
 import { Navbar, Nav, Form, Button, Container, NavDropdown } from "react-bootstrap";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import logo from "../../assets/react.svg";
 import RegisterForm from "./Register";
 import LoginForm from "./Login";
+import { isLogin, logout } from "../../services/AuthenticationService";
+import { getInfo } from "../../services/UserService";
+import { useNavigate, Link } from 'react-router-dom';
+import { jwtDecode } from "jwt-decode";
 
-export default function NavbarApp({ isLogin = false }) {
+export default function NavbarApp() {
+    const [loginStatus, setLoginStatus] = useState(isLogin());
+    const [isAdmin, setIsAdmin] = useState(false);
+    const [username, setUsername] = useState();
+    const [roles, setRoles] = useState('');
     const [show, setShow] = useState({
         showRegister: false,
         showLogin: false
     });
+
     const handleShowLogin = () => setShow({
         showRegister: false,
         showLogin: true
     });
+
     const handleShowRegister = () => setShow({
         showRegister: true,
         showLogin: false
     });
+
     const handleCloseRegister = () => setShow({
-        ...show, showRegister: false
+        ...show,
+        showRegister: false
     });
+
     const handleCloseLogin = () => setShow({
-        ...show, showLogin: false
+        ...show,
+        showLogin: false
     });
+
+    const navigate = useNavigate();
+
+    const handleLogout = async () => {
+        await logout();
+        setLoginStatus(false);
+        navigate('/');
+    };
+
+    const handleLoginSuccess = () => {
+        setLoginStatus(true);
+    };
+
+    const handleDashBoardPage = () => {
+        if (roles.includes('ROLE_ADMIN')) {
+            navigate('/dashboard');
+        }
+    }
+
+    useEffect(() => {
+        const fetchUserInfo = async () => {
+            if (loginStatus) {
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    try {
+                        const signedJwt = jwtDecode(token);
+                        var roleList = signedJwt.scope ? signedJwt.scope.split(' ') : null;
+                        if (roleList.includes("ROLE_ADMIN")) {
+                            setIsAdmin(true);
+                        }
+                        setRoles(roleList);
+                        const userData = await getInfo();
+                        if (userData?.username) {
+                            setUsername(userData.username);
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi tải thông tin user:", error);
+                    }
+                }
+            } else {
+                setIsAdmin(false);
+                setUsername(null);
+                setRoles(null);
+                localStorage.removeItem('currentUser');
+            }
+        };
+
+        fetchUserInfo();
+    }, [loginStatus]);
+
+    useEffect(() => {
+        if (roles) {
+            console.log("Retrieve user roles successfully");
+        }
+    }, [roles])
+
+    const greeting = username ? `Xin chào, ${username}` : "Xin chào";
     return (
         <Navbar expand="lg" className="bg-body-tertiary w-100" collapseOnSelect>
             <Container fluid>
@@ -58,24 +129,32 @@ export default function NavbarApp({ isLogin = false }) {
                     </Form>
 
                     {
-                        isLogin ? (
+                        loginStatus ? (
                             <>
                                 <Nav.Link href="#home" className="me-3 p-2">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-cart4" viewBox="0 0 16 16">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" className="bi bi-cart4" viewBox="0 0 16 16">
                                         <path d="M0 2.5A.5.5 0 0 1 .5 2H2a.5.5 0 0 1 .485.379L2.89 4H14.5a.5.5 0 0 1 .485.621l-1.5 6A.5.5 0 0 1 13 11H4a.5.5 0 0 1-.485-.379L1.61 3H.5a.5.5 0 0 1-.5-.5M3.14 5l.5 2H5V5zM6 5v2h2V5zm3 0v2h2V5zm3 0v2h1.36l.5-2zm1.11 3H12v2h.61zM11 8H9v2h2zM8 8H6v2h2zM5 8H3.89l.5 2H5zm0 5a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0m9-1a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-2 1a2 2 0 1 1 4 0 2 2 0 0 1-4 0" />
                                     </svg>
                                 </Nav.Link>
 
-
                                 <Nav>
-                                    <NavDropdown title="Xin chào, user" align="end">
+                                    <NavDropdown title={greeting} align="end">
                                         <NavDropdown.Item href="#action3">Action</NavDropdown.Item>
                                         <NavDropdown.Item href="#action4">Profile</NavDropdown.Item>
                                         <NavDropdown.Item href="#action4">
                                             Lịch sử mua hàng
                                         </NavDropdown.Item>
                                         <NavDropdown.Divider />
-                                        <NavDropdown.Item href="#action5">
+                                        {isAdmin
+                                            ? <>
+                                                <NavDropdown.Item as={Link} to='/dashboard'>
+                                                    Dashboard
+                                                </NavDropdown.Item>
+                                            </>
+                                            : <>
+                                            </>
+                                        }
+                                        <NavDropdown.Item onClick={handleLogout}>
                                             Đăng xuất
                                         </NavDropdown.Item>
                                     </NavDropdown>
@@ -83,27 +162,27 @@ export default function NavbarApp({ isLogin = false }) {
                             </>
                         ) : (
                             <>
-                                <Nav.Link onClick={handleShowRegister} href="#home" className="me-3 p-2">
+                                <Nav.Link onClick={handleShowRegister} className="me-3 p-2" style={{ cursor: 'pointer' }}>
                                     Đăng ký
                                 </Nav.Link>
-                                <Nav.Link onClick={handleShowLogin} className="me-3 p-2">
+                                <Nav.Link onClick={handleShowLogin} className="me-3 p-2" style={{ cursor: 'pointer' }}>
                                     Đăng nhập
                                 </Nav.Link>
-                                <RegisterForm 
-                                    show={show.showRegister} 
-                                    handleClose={handleCloseRegister} 
-                                    switchToLogin={handleShowLogin} 
+
+                                <RegisterForm
+                                    show={show.showRegister}
+                                    handleClose={handleCloseRegister}
+                                    switchToLogin={handleShowLogin}
                                 />
-                                <LoginForm 
-                                    show={show.showLogin} 
-                                    handleClose={handleCloseLogin} 
-                                    switchToRegister={handleShowRegister} 
+                                <LoginForm
+                                    show={show.showLogin}
+                                    handleClose={handleCloseLogin}
+                                    switchToRegister={handleShowRegister}
+                                    onLoginSuccess={handleLoginSuccess}
                                 />
                             </>
                         )
                     }
-
-
                 </Navbar.Collapse>
             </Container>
         </Navbar>

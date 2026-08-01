@@ -4,6 +4,7 @@ import com.laptopshop.identityservice.dto.request.UserCreationRequest;
 import com.laptopshop.identityservice.dto.request.UserUpdateRequest;
 import com.laptopshop.identityservice.dto.response.ApiResponse;
 import com.laptopshop.identityservice.dto.response.UserCreationResponse;
+import com.laptopshop.identityservice.dto.response.UserInfo;
 import com.laptopshop.identityservice.dto.response.UserUpdateResponse;
 import com.laptopshop.identityservice.service.UserService;
 import jakarta.validation.Valid;
@@ -47,6 +48,13 @@ public class UserController {
     public ApiResponse<List<UserCreationResponse>> fetchAllUsers() {
         return ApiResponse.<List<UserCreationResponse>>builder()
                 .result(this.userService.getAllUsers())
+                .build();
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<UserInfo> getInfo(@PathVariable String id) {
+        return ApiResponse.<UserInfo>builder()
+                .result(this.userService.getUserInfo(id))
                 .build();
     }
 }

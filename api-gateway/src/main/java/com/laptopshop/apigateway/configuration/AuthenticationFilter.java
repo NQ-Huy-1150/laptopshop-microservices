@@ -61,7 +61,6 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
                         .token(token)
                         .build()
         );
-        log.info("token: {}", token);
         return introspectResponse.flatMap(response -> {
             log.info("result : {}", response.getResult().isValid());
             if (!response.getResult().isValid()) {

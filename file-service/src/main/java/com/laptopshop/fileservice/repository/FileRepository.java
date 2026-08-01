@@ -40,9 +40,17 @@ public class FileRepository {
     public FileInfo store(MultipartFile file) throws IOException {
         Path folder = Paths.get(savedPath);
         var fileExtension = StringUtils.getFilenameExtension(file.getOriginalFilename());
-        var fileName = Objects.isNull(fileExtension)
-                ? UUID.randomUUID().toString()
-                : UUID.randomUUID() + "." + fileExtension;
+        String fileName = "";
+        if (file.getOriginalFilename().contains("main")) {
+            fileName = Objects.isNull(fileExtension)
+                    ? "main-" + UUID.randomUUID()
+                    : "main-" + UUID.randomUUID() + "." + fileExtension;
+        } else {
+            fileName = Objects.isNull(fileExtension)
+                    ? UUID.randomUUID().toString()
+                    : UUID.randomUUID() + "." + fileExtension;
+        }
+
         Path filePath = folder.resolve(fileName).normalize().toAbsolutePath();
         Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
         log.info("ContentType: {}", file.getContentType());

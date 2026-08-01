@@ -13,6 +13,7 @@ import com.laptopshop.productservice.enums.Status;
 import com.laptopshop.productservice.exception.AppException;
 import com.laptopshop.productservice.exception.ErrorCode;
 import com.laptopshop.productservice.mapper.ProductMapper;
+import com.laptopshop.productservice.repository.BrandRepository;
 import com.laptopshop.productservice.repository.CategoryRepository;
 import com.laptopshop.productservice.repository.ProductRepository;
 import com.laptopshop.productservice.repository.httpClient.FileClient;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 public class ProductService {
     ProductRepository productRepository;
     CategoryRepository categoryRepository;
+    BrandRepository brandRepository;
     ProductMapper mapper;
     FileClient fileClient;
 
@@ -46,12 +48,18 @@ public class ProductService {
             throw new RuntimeException(e);
         }
         var imgUrls = fileResponses.getResult().stream().map(FileResponse::getUrl).toList();
-        log.info("Image urls : {}", imgUrls);
+        var mainImg = fileResponses.getResult().stream().filter(file -> file.getUrl().contains("main")).findFirst();
         Product product = mapper.toProduct(request);
+        // get brand
+        var brand = brandRepository.findById(request.getBrand()).orElseThrow(()
+                -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+        product.setBrandId(brand.getId());
         var categories = categoryRepository.findAllById(request.getCategoryIds())
                 .stream().map(Category::getId).collect(Collectors.toSet());
         product.setCategoryIds(categories);
-        product.setImgUrls(imgUrls);
+        product.setImages(imgUrls);
+        // set main img
+        mainImg.ifPresent(fileResponse -> product.setMainImage(fileResponse.getUrl()));
         // set product status for event handling
         product.setStatus(Status.PENDING.name());
         ProductResponse productResponse = mapper.toResponse(productRepository.save(product));
@@ -66,7 +74,7 @@ public class ProductService {
         product.setSpecs(request.getSpecs());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
-        product.setBrand(request.getBrand());
+        product.setBrandId(request.getBrand());
         var categories = categoryRepository.findAllById(request.getCategoryIds())
                 .stream().map(Category::getId).collect(Collectors.toSet());
         product.setCategoryIds(categories);
