@@ -21,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,6 +39,7 @@ public class ProductService {
     BrandRepository brandRepository;
     ProductMapper mapper;
     FileClient fileClient;
+    CacheService cacheService;
 
     @Transactional
     public ProductResponse create(MultipartFile[] files, ProductCreationRequest request) {
@@ -64,9 +66,11 @@ public class ProductService {
         product.setStatus(Status.PENDING.name());
         ProductResponse productResponse = mapper.toResponse(productRepository.save(product));
         productResponse.setQuantity(request.getQuantity());
+        cacheService.invalidateCache();
         return productResponse;
     }
 
+    @Transactional
     public ProductResponse update(ProductUpdateRequest request) {
         Product product = productRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
@@ -74,11 +78,16 @@ public class ProductService {
         product.setSpecs(request.getSpecs());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
-        product.setBrandId(request.getBrand());
+        // get brand
+        var brand = brandRepository.findById(request.getBrand()).orElseThrow(()
+                -> new AppException(ErrorCode.BRAND_NOT_FOUND));
+        product.setBrandId(brand.getId());
         var categories = categoryRepository.findAllById(request.getCategoryIds())
                 .stream().map(Category::getId).collect(Collectors.toSet());
         product.setCategoryIds(categories);
-        return mapper.toResponse(productRepository.save(product));
+        product = productRepository.save(product);
+        cacheService.invalidateCache();
+        return mapper.toResponse(product);
     }
 
     public ProductInfoResponse getInfo(ProductInfoRequest request) {
@@ -94,8 +103,10 @@ public class ProductService {
         productRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         productRepository.deleteById(id);
+        cacheService.invalidateCache();
     }
 
+    @Cacheable(value = "products", key = "'all'")
     public List<ProductResponse> findAll() {
         return productRepository.findAll()
                 .stream().map(mapper::toResponse).collect(Collectors.toList());

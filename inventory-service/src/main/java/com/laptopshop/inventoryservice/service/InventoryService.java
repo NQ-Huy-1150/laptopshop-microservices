@@ -15,8 +15,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,12 +27,15 @@ import java.util.Optional;
 @Slf4j
 public class InventoryService {
     InventoryRepository inventoryRepository;
+    CacheService cacheService;
     InventoryMapper inventoryMapper;
 
     @Transactional
     public StockResponse createStock(AddStockEvent request) {
         Inventory inventory = inventoryMapper.toInventory(request);
-        return inventoryMapper.toStockResponse(inventoryRepository.save(inventory));
+        inventory = inventoryRepository.save(inventory);
+        cacheService.invalidateCache();
+        return inventoryMapper.toStockResponse(inventory);
     }
 
     @Transactional
@@ -38,7 +43,9 @@ public class InventoryService {
         Inventory inventory = inventoryRepository.findById(request.getProductId())
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         inventory.setStock(request.getQuantity());
-        return inventoryMapper.toInventoryResponse(inventoryRepository.save(inventory));
+        inventory = inventoryRepository.save(inventory);
+        cacheService.invalidateCache();
+        return inventoryMapper.toInventoryResponse(inventory);
     }
 
     private void revertStock(Inventory inventory, StockIssueRequest request) {
@@ -58,7 +65,14 @@ public class InventoryService {
             }
             inventory.setStock(inventory.getStock() - request.getQuantity());
             inventory.setStockIssue(inventory.getStockIssue() + request.getQuantity());
-            return inventoryMapper.toInventoryResponse(inventoryRepository.save(inventory));
+            inventory = inventoryRepository.save(inventory);
+            cacheService.invalidateCache();
+            return inventoryMapper.toInventoryResponse(inventory);
         }
+    }
+
+    @Cacheable(value = "inventories", key = "'all'")
+    public List<InventoryResponse> fetchAllInventory() {
+        return inventoryRepository.findAll().stream().map(inventoryMapper::toInventoryResponse).toList();
     }
 }

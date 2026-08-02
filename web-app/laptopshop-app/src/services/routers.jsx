@@ -4,6 +4,7 @@ import CardLayout from '../features/product/CardLayout.jsx';
 import DashBoardApp from '../features/dashboard/Dashboard.jsx';
 import Template from '../features/dashboard/Template.jsx';
 import ProductMgmtView from '../features/dashboard/product/ProductMgmt.jsx';
+import { ProductDashBoard } from './loaders.jsx';
 const router = createBrowserRouter([
     {
         path: '/',
@@ -25,7 +26,11 @@ const router = createBrowserRouter([
             },
             {
                 path: 'products',
-                element: <ProductMgmtView />
+                loader: async () => {
+                    console.log('fetching data ....');
+                    return await ProductDashBoard();
+                },
+                element: < ProductMgmtView />
             }
         ]
     }

@@ -29,6 +29,7 @@ public class ProductController {
 
     @GetMapping
     ApiResponse<List<ProductResponse>> findAll() {
+        log.info("Finding all products");
         return ApiResponse.<List<ProductResponse>>builder()
                 .result(productService.findAll())
                 .build();
