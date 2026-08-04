@@ -1,8 +1,10 @@
 package com.laptopshop.identityservice.service;
 
 import com.laptopshop.identityservice.dto.request.UserCreationRequest;
+import com.laptopshop.identityservice.dto.request.UserDashboardUpdateRequest;
 import com.laptopshop.identityservice.dto.request.UserUpdateRequest;
 import com.laptopshop.identityservice.dto.response.UserCreationResponse;
+import com.laptopshop.identityservice.dto.response.UserDashboardResponse;
 import com.laptopshop.identityservice.dto.response.UserInfo;
 import com.laptopshop.identityservice.dto.response.UserUpdateResponse;
 import com.laptopshop.identityservice.entity.Role;
@@ -10,6 +12,7 @@ import com.laptopshop.identityservice.entity.User;
 import com.laptopshop.identityservice.enums.PredefinedRole;
 import com.laptopshop.identityservice.exception.AppException;
 import com.laptopshop.identityservice.exception.ErrorCode;
+import com.laptopshop.identityservice.mapper.UserDashboardMapper;
 import com.laptopshop.identityservice.mapper.UserMapper;
 import com.laptopshop.identityservice.repository.RoleRepository;
 import com.laptopshop.identityservice.repository.UserRepository;
@@ -36,6 +39,7 @@ public class UserService {
     UserMapper userMapper;
     PasswordEncoder passwordEncoder;
     AuthenticationService authenticationService;
+    UserDashboardMapper userDashboardMapper;
 
     @PreAuthorize("hasRole('ADMIN')")
     public List<UserCreationResponse> getAllUsers() {
@@ -66,8 +70,6 @@ public class UserService {
         user.setLastName(request.getLastName());
         user.setDob(request.getDob());
         user.setEmail(request.getEmail());
-        List<Role> roles = roleRepository.findAllById(request.getRoles());
-        user.setRoles(new HashSet<>(roles));
         return this.userMapper.toUpdateResponse(this.userRepository.save(user));
     }
 
@@ -92,5 +94,21 @@ public class UserService {
                 .phoneNumber(user.getPhoneNumber())
                 .address(user.getAddress())
                 .build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public UserDashboardResponse handleDashboardUpdate(UserDashboardUpdateRequest request) {
+        var user = userRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        var roles = roleRepository.findAllById(request.getRoles());
+        user.setRoles(new HashSet<>(roles));
+        user = userRepository.save(user);
+        return userDashboardMapper.toResponse(user);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserDashboardResponse> getAllUserDashboard() {
+        return userRepository.findAll().stream().map(userDashboardMapper::toResponse).toList();
     }
 }

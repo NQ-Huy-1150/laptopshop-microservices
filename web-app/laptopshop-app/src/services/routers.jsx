@@ -4,10 +4,10 @@ import CardLayout from '../features/product/CardLayout.jsx';
 import DashBoardApp from '../features/dashboard/Dashboard.jsx';
 import Template from '../features/dashboard/Template.jsx';
 import ProductMgmtView from '../features/dashboard/product/ProductMgmt.jsx';
-import { ProductDashBoard } from './loaders.jsx';
+import { ProductDashBoard, RolePermissionDashBoard } from './loaders.jsx';
 import UserDashBoard from '../features/dashboard/user/UserMgmt.jsx';
-import PermissionDashBoard from '../features/dashboard/permission/PermissionMgmt.jsx';
-import RoleDashBoard from '../features/dashboard/role/RoleMgmt.jsx';
+import PermissionDashBoard from '../features/dashboard/role_permission/PermissionMgmt.jsx';
+import RoleDashBoard from '../features/dashboard/role_permission/RoleMgmt.jsx';
 import OrderDashBoard from '../features/dashboard/order/OderMgmt.jsx';
 
 const router = createBrowserRouter([
@@ -44,11 +44,10 @@ const router = createBrowserRouter([
                 element: <UserDashBoard />
             },
             {
-                path: 'permissions',
-                element: <PermissionDashBoard />
-            },
-            {
                 path: 'roles',
+                loader: async () => {
+                    return await RolePermissionDashBoard();
+                },
                 element: <RoleDashBoard />
             },
             {

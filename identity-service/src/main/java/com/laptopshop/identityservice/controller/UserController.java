@@ -29,14 +29,14 @@ public class UserController {
                 .build();
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public ApiResponse<UserUpdateResponse> update(@RequestBody @Valid UserUpdateRequest request) {
         return ApiResponse.<UserUpdateResponse>builder()
                 .result(this.userService.update(request))
                 .build();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable String id) {
         this.userService.delete(id);
         return ApiResponse.builder()

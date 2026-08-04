@@ -28,7 +28,7 @@ public class PermissionController {
                 .build();
     }
 
-    @PutMapping("/update")
+    @PutMapping
     ApiResponse<PermissionResponse> update(@RequestBody PermissionUpdateRequest request) {
         return ApiResponse.<PermissionResponse>builder()
                 .code(200)
@@ -36,7 +36,7 @@ public class PermissionController {
                 .build();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     ApiResponse<?> delete(@PathVariable String id) {
         this.permissionService.delete(id);
         return ApiResponse.<RoleResponse>builder()

@@ -35,7 +35,7 @@ public class RoleController {
                 .build();
     }
 
-    @PutMapping("/update")
+    @PutMapping
     ApiResponse<RoleResponse> update(@RequestBody RoleUpdateRequest request) {
         return ApiResponse.<RoleResponse>builder()
                 .code(200)
@@ -43,7 +43,7 @@ public class RoleController {
                 .build();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     ApiResponse<?> delete(@PathVariable String id) {
         this.roleService.delete(id);
         return ApiResponse.<RoleResponse>builder()

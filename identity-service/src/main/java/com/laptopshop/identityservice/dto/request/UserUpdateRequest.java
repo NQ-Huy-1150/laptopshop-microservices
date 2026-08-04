@@ -8,7 +8,6 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.time.LocalDate;
-import java.util.Set;
 
 @Data
 @NoArgsConstructor
@@ -30,6 +29,4 @@ public class UserUpdateRequest {
     String address;
     @Size(min = 10, max = 10, message = "PHONE_NUMBER_NOT_VALID")
     String phoneNumber;
-
-    Set<String> roles;
 }
