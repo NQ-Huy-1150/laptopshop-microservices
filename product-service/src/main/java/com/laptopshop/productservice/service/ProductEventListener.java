@@ -1,11 +1,11 @@
 package com.laptopshop.productservice.service;
 
-import com.laptopshop.event.dto.AddStockEvent;
 import com.laptopshop.event.dto.AddStockResponse;
-import com.laptopshop.productservice.dto.request.ProductCreationRequest;
+import com.laptopshop.event.dto.DeleteProductEvent;
+import com.laptopshop.event.dto.OutOfStockResponse;
+import com.laptopshop.event.dto.RestockEvent;
 import com.laptopshop.productservice.dto.request.ProductInfoRequest;
 import com.laptopshop.productservice.dto.response.ProductInfoResponse;
-import com.laptopshop.productservice.dto.response.ProductResponse;
 import com.laptopshop.productservice.entity.Product;
 import com.laptopshop.productservice.enums.Status;
 import com.laptopshop.productservice.exception.AppException;
@@ -18,35 +18,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
-import org.springframework.web.multipart.MultipartFile;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-public class EventService {
+public class ProductEventListener {
     KafkaTemplate<String, Object> kafkaTemplate;
-    ProductService productService;
     ProductRepository productRepository;
-
-    public void sendEventMessage(ProductResponse response) {
-        AddStockEvent addStockEvent = AddStockEvent.builder()
-                .productId(response.getId())
-                .quantity(response.getQuantity())
-                .build();
-        try {
-            kafkaTemplate.send("add-stock-request", addStockEvent);
-            log.info("Sending add stock event to Kafka");
-        } catch (Exception e) {
-            log.error("Error while sending message : {}", e.getMessage());
-        }
-    }
-
-    public ProductResponse handleCreateEvent(MultipartFile[] files, ProductCreationRequest request) {
-        var response = productService.create(files, request);
-        sendEventMessage(response);
-        return response;
-    }
 
     @KafkaListener(topics = "add-stock-response")
     public void handleAddStockResponse(AddStockResponse response) {
@@ -58,7 +37,7 @@ public class EventService {
             return;
         }
         if (response.isSuccess()) {
-            product.setStatus(Status.SUCCESS.name());
+            product.setStatus(Status.ACTIVE.name());
         } else {
             product.setStatus(Status.FAILED.name());
         }
@@ -79,6 +58,46 @@ public class EventService {
             log.info("Retrieved successfully");
         } catch (Exception e) {
             log.error("Error while response message : {}", e.getMessage());
+        }
+    }
+
+    @KafkaListener(topics = "out-of-stock-response")
+    public void handleOutOfStockEvent(OutOfStockResponse response) {
+        log.info("Received out of stock response from Kafka");
+        var product = productRepository.findById(response.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        if (product.getStatus().equals(Status.OUT_OF_STOCK.name())) {
+            return;
+        }
+        product.setStatus(Status.OUT_OF_STOCK.name());
+        productRepository.save(product);
+    }
+
+    @KafkaListener(topics = "delete-inventory-response")
+    public void handleDeleteInventoryResponse(DeleteProductEvent event) {
+        log.info("Received delete inventory response from Kafka : {}", event.isStatus());
+        if (!event.isStatus()) {
+            var product = productRepository.findById(event.getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (!product.getStatus().equals(Status.DELETED.name())) {
+            } else {
+                product.setStatus(Status.ACTIVE.name());
+                productRepository.save(product);
+            }
+        }
+    }
+
+    @KafkaListener(topics = "restock-event")
+    public void handleRestockEvent(RestockEvent event) {
+        log.info("Received restock event from Kafka : {}", event.isStatus());
+        if (event.isStatus()) {
+            var product = productRepository.findById(event.getId())
+                    .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+            if (!product.getStatus().equals(Status.OUT_OF_STOCK.name())) {
+                return;
+            }
+            product.setStatus(Status.ACTIVE.name());
+            productRepository.save(product);
         }
     }
 }

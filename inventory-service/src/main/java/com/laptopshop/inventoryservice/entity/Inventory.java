@@ -17,4 +17,5 @@ public class Inventory {
     String productId;
     long stock;
     long stockIssue;
+    String status;
 }

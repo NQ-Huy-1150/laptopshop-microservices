@@ -4,9 +4,9 @@ import { Formik } from 'formik';
 import * as yup from 'yup';
 import { create as createBrandApi, fetchAll as fetchAllBrandsApi } from "../../../services/BrandService";
 import { create as createCategoryApi, fetchAll as fetchAllCategoriesApi } from "../../../services/CategoryService";
-import { createProduct } from "../../../services/ProductService";
+import { createProduct, updateProduct } from "../../../services/ProductService";
 
-export default function ProductModal({ show, handleClose, onSubmitProduct }) {
+export default function ProductModal({ show, handleClose, productData, onSubmitProduct }) {
     const [brandList, setBrandList] = useState([]);
     const [categoryList, setCategoryList] = useState([]);
 
@@ -15,13 +15,12 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
     const [newBrandName, setNewBrandName] = useState('');
     const [isSavingBrand, setIsSavingBrand] = useState(false);
 
-    // Trạng thái thêm nhanh Phân loại mới (id & description)
+    // Trạng thái thêm nhanh Phân loại mới
     const [isAddingCategory, setIsAddingCategory] = useState(false);
     const [newCategoryId, setNewCategoryId] = useState('');
     const [newCategoryDesc, setNewCategoryDesc] = useState('');
     const [isSavingCategory, setIsSavingCategory] = useState(false);
 
-    // Load danh sách Hãng & Phân loại từ Backend API khi mở Modal
     useEffect(() => {
         const loadInitialData = async () => {
             if (show) {
@@ -35,11 +34,15 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
         loadInitialData();
     }, [show]);
 
-    // Quy tắc Validate với Yup
+    const isEditMode = !!productData;
+
     const schema = yup.object().shape({
         name: yup.string().required('Tên sản phẩm không được để trống'),
         price: yup.number().typeError('Giá phải là số').required('Vui lòng nhập giá').min(1, 'Giá sản phẩm không được bé hơn 1'),
-        quantity: yup.number().typeError('Số lượng phải là số').required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu phải là 1'),
+        // Chỉ bắt buộc nhập quantity khi Thêm mới, không cần khi Cập nhật (do modal kho đảm nhận)
+        quantity: isEditMode
+            ? yup.number().typeError('Số lượng phải là số').nullable()
+            : yup.number().typeError('Số lượng phải là số').required('Vui lòng nhập số lượng').min(1, 'Số lượng tối thiểu phải là 1'),
         specs: yup.string().required('Cấu hình không được để trống'),
         description: yup.string().required('Mô tả chi tiết không được để trống'),
         brand: yup.string().required('Hãng sản xuất không được bỏ trống'),
@@ -56,34 +59,39 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
         >
             <Modal.Header closeButton>
                 <Modal.Title id="contained-modal-title-vcenter" className="w-100 text-center fw-bold">
-                    Thêm Mới Sản Phẩm
+                    {isEditMode ? `Cập Nhật Sản Phẩm #${productData?.id}` : 'Thêm Mới Sản Phẩm'}
                 </Modal.Title>
             </Modal.Header>
 
             <Modal.Body>
                 <Formik
+                    enableReinitialize
                     validationSchema={schema}
                     initialValues={{
-                        name: '',
-                        price: '',
-                        quantity: '',
-                        specs: '',
-                        description: '',
-                        brand: '',
-                        categories: [], // Dạng mảng List<String>
+                        name: productData?.name || '',
+                        price: productData?.price || '',
+                        quantity: productData?.quantity ?? productData?.stock ?? '',
+                        specs: productData?.specs || '',
+                        description: productData?.description || '',
+                        brand: productData?.brandId || '',
+                        categories: Array.isArray(productData?.categoryIds)
+                            ? productData.categoryIds
+                            : (productData?.categoryIds ? [productData.categoryIds] : []),
                         files: [],
                     }}
                     onSubmit={async (values, { setSubmitting, resetForm }) => {
                         try {
                             if (onSubmitProduct) {
-                                await onSubmitProduct(values);
+                                await onSubmitProduct(values, productData);
+                            } else if (isEditMode && productData?.id) {
+                                await updateProduct(productData.id, values);
                             } else {
                                 await createProduct(values);
                             }
                             resetForm();
                             handleClose();
                         } catch (error) {
-                            console.error("Lỗi khi thêm sản phẩm:", error);
+                            console.error("Lỗi khi xử lý sản phẩm:", error);
                         } finally {
                             setSubmitting(false);
                         }
@@ -121,9 +129,9 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
                                 </Form.Group>
                             </Row>
 
-                            {/* Cấu hình & Số lượng */}
+                            {/* Cấu hình & Số lượng (Số lượng ẩn khi Cập nhật) */}
                             <Row className="mb-3">
-                                <Form.Group as={Col} md="8">
+                                <Form.Group as={Col} md={isEditMode ? '12' : '8'}>
                                     <Form.Label className="fw-semibold">Thông số cấu hình vắn tắt</Form.Label>
                                     <Form.Control
                                         type="text"
@@ -136,18 +144,21 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
                                     <Form.Control.Feedback type="invalid">{errors.specs}</Form.Control.Feedback>
                                 </Form.Group>
 
-                                <Form.Group as={Col} md="4">
-                                    <Form.Label className="fw-semibold">Số lượng nhập kho</Form.Label>
-                                    <Form.Control
-                                        type="number"
-                                        name="quantity"
-                                        placeholder="Ví dụ: 10"
-                                        value={values.quantity}
-                                        onChange={handleChange}
-                                        isInvalid={touched.quantity && !!errors.quantity}
-                                    />
-                                    <Form.Control.Feedback type="invalid">{errors.quantity}</Form.Control.Feedback>
-                                </Form.Group>
+                                {/* Ẩn ô Số lượng khi đang Cập nhật vì modal kho đảm nhận riêng */}
+                                {!isEditMode && (
+                                    <Form.Group as={Col} md="4">
+                                        <Form.Label className="fw-semibold">Số lượng nhập kho</Form.Label>
+                                        <Form.Control
+                                            type="number"
+                                            name="quantity"
+                                            placeholder="Ví dụ: 10"
+                                            value={values.quantity}
+                                            onChange={handleChange}
+                                            isInvalid={touched.quantity && !!errors.quantity}
+                                        />
+                                        <Form.Control.Feedback type="invalid">{errors.quantity}</Form.Control.Feedback>
+                                    </Form.Group>
+                                )}
                             </Row>
 
                             {/* Hãng sản xuất (Brand) & Phân loại (Categories - Multi Select) */}
@@ -232,7 +243,7 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
                                         </Button>
                                     </div>
 
-                                    {/* Khung thêm nhanh Phân loại mới (Mã & Mô tả) */}
+                                    {/* Khung thêm nhanh Phân loại mới */}
                                     {isAddingCategory ? (
                                         <div className="border rounded p-2 bg-light mb-2">
                                             <InputGroup size="sm" className="mb-2">
@@ -263,12 +274,11 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
                                                 onClick={async () => {
                                                     if (!newCategoryId.trim() || !newCategoryDesc.trim()) return;
                                                     setIsSavingCategory(true);
-                                                    const payload = { id: newCategoryId.trim(), description: newCategoryDesc.trim() };
+                                                    const payload = { name: newCategoryId.trim(), description: newCategoryDesc.trim() };
                                                     const created = await createCategoryApi(payload);
                                                     if (created) {
                                                         const updatedList = await fetchAllCategoriesApi();
                                                         if (Array.isArray(updatedList)) setCategoryList(updatedList);
-                                                        // Tự động chọn phân loại vừa thêm
                                                         const currentCats = values.categories || [];
                                                         if (!currentCats.includes(newCategoryId.trim())) {
                                                             setFieldValue('categories', [...currentCats, newCategoryId.trim()]);
@@ -338,14 +348,14 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
                                         }}
                                     />
                                     <Form.Text className="text-muted">
-                                        Có thể chọn nhiều hình ảnh cùng lúc (ảnh đầu tiên sẽ làm ảnh bìa hoặc theo quy ước Backend).
+                                        {isEditMode ? 'Để trống nếu không muốn thay đổi/tải lên ảnh mới.' :
+                                            'Có thể chọn nhiều hình ảnh cùng lúc. Ảnh bìa đặt tên theo quy tắc : main.jpg / main.webp ...'}
                                     </Form.Text>
 
-                                    {/* Hiển thị số lượng & tên các ảnh đã chọn */}
                                     {values.files && values.files.length > 0 && (
                                         <div className="mt-2 d-flex flex-wrap gap-2 align-items-center">
                                             <Badge bg="info" className="p-2">
-                                                Đã chọn {values.files.length} tệp ảnh
+                                                Đã chọn {values.files.length} tệp ảnh mới
                                             </Badge>
                                             {values.files.map((file, idx) => (
                                                 <Badge key={idx} bg="light" text="dark" className="border">
@@ -386,7 +396,7 @@ export default function ProductModal({ show, handleClose, onSubmitProduct }) {
                                             Đang lưu...
                                         </>
                                     ) : (
-                                        'Thêm sản phẩm'
+                                        isEditMode ? 'Lưu Cập Nhật' : 'Thêm Sản Phẩm'
                                     )}
                                 </Button>
                             </div>

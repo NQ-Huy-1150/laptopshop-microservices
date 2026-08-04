@@ -20,6 +20,7 @@ public class ProductResponse {
     long quantity;
     String brandId;
     String mainImage;
+    String status;
     List<String> images;
     List<String> categoryIds;
 }

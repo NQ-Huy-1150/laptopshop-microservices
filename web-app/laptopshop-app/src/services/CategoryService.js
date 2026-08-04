@@ -4,6 +4,7 @@ const BASE_URL = '/product/categories';
 
 export const create = async (payload) => {
     try {
+        console.info(payload);
         const response = await gateway.post(BASE_URL, payload);
         return response?.data?.result ?? response?.data;
     } catch (error) {

@@ -4,9 +4,9 @@ import com.laptopshop.productservice.dto.request.ProductCreationRequest;
 import com.laptopshop.productservice.dto.request.ProductInfoRequest;
 import com.laptopshop.productservice.dto.request.ProductUpdateRequest;
 import com.laptopshop.productservice.dto.response.ApiResponse;
+import com.laptopshop.productservice.dto.response.PageResponse;
 import com.laptopshop.productservice.dto.response.ProductInfoResponse;
 import com.laptopshop.productservice.dto.response.ProductResponse;
-import com.laptopshop.productservice.service.EventService;
 import com.laptopshop.productservice.service.ProductService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -16,8 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @Slf4j
 @RestController
 @RequestMapping("/products")
@@ -25,13 +23,24 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ProductController {
     ProductService productService;
-    EventService eventService;
+
+//    @GetMapping
+//    ApiResponse<List<ProductResponse>> findAll() {
+//        log.info("Finding all products");
+//        return ApiResponse.<List<ProductResponse>>builder()
+//                .result(productService.findAll())
+//                .build();
+//    }
 
     @GetMapping
-    ApiResponse<List<ProductResponse>> findAll() {
-        log.info("Finding all products");
-        return ApiResponse.<List<ProductResponse>>builder()
-                .result(productService.findAll())
+    ApiResponse<PageResponse<ProductResponse>> fetchAll(
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size,
+            @RequestParam(value = "isDesc", required = false, defaultValue = "false") boolean isDesc
+    ) {
+        log.info("Finding all products, page: {}, size: {}", page, size);
+        return ApiResponse.<PageResponse<ProductResponse>>builder()
+                .result(productService.fetchAll(page, size, isDesc))
                 .build();
     }
 
@@ -50,14 +59,16 @@ public class ProductController {
         log.info("number of files: {}", files.length);
         log.info("brand : {}", request.getBrand());
         return ApiResponse.<ProductResponse>builder()
-                .result(eventService.handleCreateEvent(files, request))
+                .result(productService.create(files, request))
                 .build();
     }
 
     @PutMapping
-    ApiResponse<ProductResponse> update(@RequestBody @Valid ProductUpdateRequest request) {
+    ApiResponse<ProductResponse> update(
+            @RequestPart(value = "files", required = false) MultipartFile[] files,
+            @RequestPart("request") @Valid ProductUpdateRequest request) {
         return ApiResponse.<ProductResponse>builder()
-                .result(productService.update(request))
+                .result(productService.update(files, request))
                 .build();
     }
 

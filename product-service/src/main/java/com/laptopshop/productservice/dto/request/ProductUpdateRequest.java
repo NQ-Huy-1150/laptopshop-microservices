@@ -1,5 +1,6 @@
 package com.laptopshop.productservice.dto.request;
 
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
@@ -21,7 +22,7 @@ public class ProductUpdateRequest {
     String specs;
     @NotEmpty(message = "PRODUCT_DESCRIPTION_INVALID")
     String description;
-    @NotEmpty(message = "PRODUCT_PRICE_INVALID")
+    @Min(value = 1, message = "PRODUCT_PRICE_INVALID")
     BigDecimal price;
     @NotEmpty(message = "PRODUCT_BRAND_INVALID")
     String brand;

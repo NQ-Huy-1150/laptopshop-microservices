@@ -1,24 +1,23 @@
 import { fetchAll as fetchAllBrand } from "./BrandService";
-import { fetchAll as fetchAllProduct } from './ProductService.js';
+import { fetchAllWithPagination as fetchAllProduct } from './ProductService.js';
 import { fetchAll as fetchAllCategory } from "./CategoryService";
 import { fetchAll as fetchAllInventory } from "./InventoryService.js";
-export const ProductDashBoard = async () => {
+
+export const ProductDashBoard = async (page = 1, size = 5) => {
     try {
-        const productList = await fetchAllProduct();
+        const productData = await fetchAllProduct(page, size, null);
         const brandList = await fetchAllBrand();
         const categoryList = await fetchAllCategory();
         const inventoryList = await fetchAllInventory();
-        const payload = {
-            products: productList,
+
+        return {
+            products: productData,
             brands: brandList,
             categories: categoryList,
             inventories: inventoryList
-        }
-        console.info('payload : ');
-        console.info(payload);
-        return payload ? payload : null;
+        };
     } catch (error) {
-        console.error(`Fail to retrieve data for Dashboard-Product : ${error}`)
+        console.error(`Fail to retrieve data for Dashboard-Product: ${error}`);
         return null;
     }
-}
+};

@@ -5,6 +5,11 @@ import DashBoardApp from '../features/dashboard/Dashboard.jsx';
 import Template from '../features/dashboard/Template.jsx';
 import ProductMgmtView from '../features/dashboard/product/ProductMgmt.jsx';
 import { ProductDashBoard } from './loaders.jsx';
+import UserDashBoard from '../features/dashboard/user/UserMgmt.jsx';
+import PermissionDashBoard from '../features/dashboard/permission/PermissionMgmt.jsx';
+import RoleDashBoard from '../features/dashboard/role/RoleMgmt.jsx';
+import OrderDashBoard from '../features/dashboard/order/OderMgmt.jsx';
+
 const router = createBrowserRouter([
     {
         path: '/',
@@ -26,11 +31,29 @@ const router = createBrowserRouter([
             },
             {
                 path: 'products',
-                loader: async () => {
-                    console.log('fetching data ....');
-                    return await ProductDashBoard();
+                loader: async ({ request }) => {
+                    const url = new URL(request.url);
+                    const page = parseInt(url.searchParams.get("page") || "1", 10);
+                    const size = parseInt(url.searchParams.get("size") || "5", 10);
+                    return await ProductDashBoard(page, size);
                 },
-                element: < ProductMgmtView />
+                element: <ProductMgmtView />
+            },
+            {
+                path: 'users',
+                element: <UserDashBoard />
+            },
+            {
+                path: 'permissions',
+                element: <PermissionDashBoard />
+            },
+            {
+                path: 'roles',
+                element: <RoleDashBoard />
+            },
+            {
+                path: 'orders',
+                element: <OrderDashBoard />
             }
         ]
     }

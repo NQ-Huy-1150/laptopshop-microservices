@@ -23,10 +23,11 @@ public enum ErrorCode {
     PRODUCT_BRAND_INVALID(1025, "Product brand can not be empty", HttpStatus.BAD_REQUEST),
     PRODUCT_SPECS_INVALID(1026, "Product specs can not be empty", HttpStatus.BAD_REQUEST),
     PRODUCT_DESCRIPTION_INVALID(1027, "Product description can not be empty", HttpStatus.BAD_REQUEST),
-    PRODUCT_PRICE_INVALID(1028, "Product price must greater or equal 0", HttpStatus.BAD_REQUEST),
+    PRODUCT_PRICE_INVALID(1028, "Product price must greater or equal {min}", HttpStatus.BAD_REQUEST),
     PRODUCT_ID_INVALID(1029, "Product id can not be empty", HttpStatus.BAD_REQUEST),
     QUANTITY_INVALID(1021, "Quantity must be at least {min}", HttpStatus.BAD_REQUEST),
     BRAND_NOT_FOUND(1023, "Brand not found", HttpStatus.NOT_FOUND),
+    FAIL_TO_SEND_MESSAGE_TO_KAFKA(1030, "Fail to send message to kafka", HttpStatus.BAD_REQUEST),
     ;
 
     int code;

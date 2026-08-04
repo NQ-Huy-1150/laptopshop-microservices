@@ -19,4 +19,8 @@ public class UpdateStockRequest {
     String productId;
     @Min(value = 1, message = "QUANTITY_INVALID")
     long quantity;
+    @NotEmpty(message = "UPDATE_TYPE_INVALID")
+    String updateType;
+    @NotEmpty(message = "DESCRIPTION_INVALID")
+    String description;
 }

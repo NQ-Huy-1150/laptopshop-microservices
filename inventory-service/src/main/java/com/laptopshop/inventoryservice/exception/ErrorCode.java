@@ -20,6 +20,11 @@ public enum ErrorCode {
     NEGATIVE_STOCK(1022, "Stock not enough for this issue request", HttpStatus.BAD_REQUEST),
     STOCK_ISSUE_FAILURE(1023, "Get error while handle this request", HttpStatus.INTERNAL_SERVER_ERROR),
     PRODUCT_NOT_FOUND(1024, "Product not found", HttpStatus.NOT_FOUND),
+    UPDATE_TYPE_INVALID(1025, "Update type must not empty", HttpStatus.BAD_REQUEST),
+    DESCRIPTION_INVALID(1026, "Description must not empty", HttpStatus.BAD_REQUEST),
+    UPDATE_TYPE_NOT_FOUND(1027, "Update type not found", HttpStatus.NOT_FOUND),
+    FAIL_TO_SEND_OUT_OF_STOCK_MESSAGE(1028, "Fail to send out of stock message to kafka", HttpStatus.INTERNAL_SERVER_ERROR),
+    FAIL_TO_SEND_RESTOCK_MESSAGE(1029, "Fail to send restock message to kafka", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
 
     int code;

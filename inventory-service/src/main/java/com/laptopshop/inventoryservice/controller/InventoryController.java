@@ -1,10 +1,8 @@
 package com.laptopshop.inventoryservice.controller;
 
-import com.laptopshop.event.dto.AddStockEvent;
 import com.laptopshop.inventoryservice.dto.request.UpdateStockRequest;
 import com.laptopshop.inventoryservice.dto.response.ApiResponse;
 import com.laptopshop.inventoryservice.dto.response.InventoryResponse;
-import com.laptopshop.inventoryservice.dto.response.StockResponse;
 import com.laptopshop.inventoryservice.service.InventoryService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -23,10 +21,10 @@ import java.util.List;
 public class InventoryController {
     InventoryService inventoryService;
 
-    @PostMapping("/stocks")
-    ApiResponse<StockResponse> addStock(@RequestBody @Valid AddStockEvent request) {
-        return ApiResponse.<StockResponse>builder()
-                .result(inventoryService.createStock(request))
+    @GetMapping
+    ApiResponse<List<InventoryResponse>> fetchAllInventory() {
+        return ApiResponse.<List<InventoryResponse>>builder()
+                .result(inventoryService.fetchAllInventory())
                 .build();
     }
 
@@ -36,12 +34,4 @@ public class InventoryController {
                 .result(inventoryService.updateStock(request))
                 .build();
     }
-
-    @GetMapping
-    ApiResponse<List<InventoryResponse>> fetchAllInventory() {
-        return ApiResponse.<List<InventoryResponse>>builder()
-                .result(inventoryService.fetchAllInventory())
-                .build();
-    }
-
 }
