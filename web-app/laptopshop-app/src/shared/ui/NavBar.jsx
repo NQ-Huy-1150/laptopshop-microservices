@@ -173,6 +173,7 @@ export default function NavbarApp() {
                                     show={show.showRegister}
                                     handleClose={handleCloseRegister}
                                     switchToLogin={handleShowLogin}
+                                    onLoginSuccess={handleLoginSuccess}
                                 />
                                 <LoginForm
                                     show={show.showLogin}

@@ -1,9 +1,14 @@
 import gateway from "./ApiClient";
 const BASE_URL = '/identity/dashboard/users';
 
-export const fetchAll = async () => {
+export const fetchAll = async (page, size) => {
     try {
-        const response = await gateway.get(BASE_URL);
+        const response = await gateway.get(BASE_URL, {
+            params: {
+                page: Number(page),
+                size: Number(size)
+            }
+        });
         console.log(response.data.result);
         return response?.data?.result ?? response?.data;
     } catch (error) {

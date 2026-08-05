@@ -16,5 +16,6 @@ public class UserDashboardResponse {
     String email;
     String firstName;
     String lastName;
+    String address;
     Set<RoleResponse> roles;
 }

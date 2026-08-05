@@ -3,10 +3,7 @@ package com.laptopshop.identityservice.service;
 import com.laptopshop.identityservice.dto.request.UserCreationRequest;
 import com.laptopshop.identityservice.dto.request.UserDashboardUpdateRequest;
 import com.laptopshop.identityservice.dto.request.UserUpdateRequest;
-import com.laptopshop.identityservice.dto.response.UserCreationResponse;
-import com.laptopshop.identityservice.dto.response.UserDashboardResponse;
-import com.laptopshop.identityservice.dto.response.UserInfo;
-import com.laptopshop.identityservice.dto.response.UserUpdateResponse;
+import com.laptopshop.identityservice.dto.response.*;
 import com.laptopshop.identityservice.entity.Role;
 import com.laptopshop.identityservice.entity.User;
 import com.laptopshop.identityservice.enums.PredefinedRole;
@@ -21,6 +18,8 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,6 +47,7 @@ public class UserService {
 
     @Transactional
     public UserCreationResponse create(UserCreationRequest request) {
+        log.info("Creating user {}", request.getEmail());
         User user = userMapper.toCreateUser(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         Role role = this.roleRepository.findById(PredefinedRole.USER.name())
@@ -108,7 +108,15 @@ public class UserService {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    public List<UserDashboardResponse> getAllUserDashboard() {
-        return userRepository.findAll().stream().map(userDashboardMapper::toResponse).toList();
+    public PageResponse<UserDashboardResponse> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        var data = userRepository.findAll(pageable);
+        return PageResponse.<UserDashboardResponse>builder()
+                .currentPage(page)
+                .totalPages(data.getTotalPages())
+                .totalElements(data.getTotalElements())
+                .pageSize(data.getSize())
+                .data(data.getContent().stream().map(userDashboardMapper::toResponse).toList())
+                .build();
     }
 }

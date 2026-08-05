@@ -2,14 +2,13 @@ package com.laptopshop.identityservice.controller;
 
 import com.laptopshop.identityservice.dto.request.UserDashboardUpdateRequest;
 import com.laptopshop.identityservice.dto.response.ApiResponse;
+import com.laptopshop.identityservice.dto.response.PageResponse;
 import com.laptopshop.identityservice.dto.response.UserDashboardResponse;
 import com.laptopshop.identityservice.service.UserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,9 +25,12 @@ public class DashboardController {
     }
 
     @GetMapping
-    ApiResponse<List<UserDashboardResponse>> getAllUserDashboard() {
-        return ApiResponse.<List<UserDashboardResponse>>builder()
-                .result(userService.getAllUserDashboard())
+    ApiResponse<PageResponse<UserDashboardResponse>> getAllUserDashboard(
+            @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+            @RequestParam(value = "size", required = false, defaultValue = "10") int size
+    ) {
+        return ApiResponse.<PageResponse<UserDashboardResponse>>builder()
+                .result(userService.getAll(page, size))
                 .build();
     }
 

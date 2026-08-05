@@ -1,9 +1,10 @@
-import { Row, Col, Button, Table, Container, Badge, Pagination, Modal, Form, InputGroup, Spinner, Card, Nav } from 'react-bootstrap';
-import { useState } from 'react';
-import { useLoaderData, useSearchParams, useNavigate } from 'react-router-dom';
+import { Row, Col, Button, Table, Container, Badge, Modal, Form, InputGroup, Spinner, Card, Nav } from 'react-bootstrap';
+import { useState, useEffect } from 'react';
+import { useLoaderData, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import ProductModal from './Modal';
 import BrandMgmt from './BrandMgmt';
 import CategoryMgmt from './CategoryMgmt';
+import CustomPagination from '../../../shared/ui/CustomPagination';
 import { updateStock } from '../../../services/InventoryService';
 import { deleteProduct } from '../../../services/ProductService';
 
@@ -128,6 +129,13 @@ export default function ProductMgmtView() {
             setIsDeleting(false);
         }
     };
+
+    // Tự động lùi trang nếu số trang vượt quá giới hạn sau khi xóa
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setSearchParams({ page: totalPages, size: pageSize });
+        }
+    }, [totalPages, currentPage, pageSize, setSearchParams]);
 
     // Chuyển trang động
     const handlePageChange = (newPage) => {
@@ -502,46 +510,14 @@ export default function ProductMgmtView() {
                                         </tbody>
                                     </Table>
 
-                                    {/* Bộ Phân Trang React-Bootstrap Động */}
-                                    {totalPages > 1 && (
-                                        <div className="d-flex justify-content-between align-items-center p-3 border-top bg-light">
-                                            <div className="text-muted fs-7">
-                                                Hiển thị trang <span className="fw-semibold">{currentPage}</span> / {totalPages}
-                                            </div>
-                                            <Pagination className="mb-0">
-                                                <Pagination.First
-                                                    disabled={currentPage === 1}
-                                                    onClick={() => handlePageChange(1)}
-                                                />
-                                                <Pagination.Prev
-                                                    disabled={currentPage === 1}
-                                                    onClick={() => handlePageChange(currentPage - 1)}
-                                                />
-
-                                                {[...Array(totalPages)].map((_, idx) => {
-                                                    const pageNum = idx + 1;
-                                                    return (
-                                                        <Pagination.Item
-                                                            key={pageNum}
-                                                            active={pageNum === currentPage}
-                                                            onClick={() => handlePageChange(pageNum)}
-                                                        >
-                                                            {pageNum}
-                                                        </Pagination.Item>
-                                                    );
-                                                })}
-
-                                                <Pagination.Next
-                                                    disabled={currentPage === totalPages}
-                                                    onClick={() => handlePageChange(currentPage + 1)}
-                                                />
-                                                <Pagination.Last
-                                                    disabled={currentPage === totalPages}
-                                                    onClick={() => handlePageChange(totalPages)}
-                                                />
-                                            </Pagination>
-                                        </div>
-                                    )}
+                                    {/* Bộ Phân Trang Thông Minh */}
+                                    <CustomPagination
+                                        currentPage={currentPage}
+                                        totalPages={totalPages}
+                                        totalElements={totalElements}
+                                        pageSize={pageSize}
+                                        onPageChange={handlePageChange}
+                                    />
                                 </div>
                             </Col>
                         </Row>

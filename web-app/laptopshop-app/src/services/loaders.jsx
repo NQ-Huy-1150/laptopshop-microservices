@@ -4,8 +4,8 @@ import { fetchAll as fetchAllCategory } from "./CategoryService";
 import { fetchAll as fetchAllInventory } from "./InventoryService.js";
 import { fetchAll as fetchAllPermissions } from "./PermissionService.js";
 import { fetchAll as fetchAllRoles } from "./RoleService.js";
-
-export const ProductDashBoard = async (page = 1, size = 5) => {
+import { fetchAll as fetchAllUsers } from "./UserDashboardService.js";
+export const ProductDashBoard = async (page = 1, size = 8) => {
     try {
         const productData = await fetchAllProduct(page, size, null);
         const brandList = await fetchAllBrand();
@@ -30,6 +30,19 @@ export const RolePermissionDashBoard = async () => {
         return {
             roles: roles,
             permissions: permissions
+        };
+    } catch (error) {
+        console.error(`Fail to retrieve data for Roles-Permissions: ${error?.response?.data}`);
+        throw error;
+    }
+}
+export const UserDashboardLoader = async (page = 1, size = 5) => {
+    try {
+        const roles = await fetchAllRoles();
+        const users = await fetchAllUsers(page, size);
+        return {
+            roles: roles,
+            users: users
         };
     } catch (error) {
         console.error(`Fail to retrieve data for Roles-Permissions: ${error?.response?.data}`);

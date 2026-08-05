@@ -1,15 +1,22 @@
 import { Row, Col, Button, Form, Modal } from "react-bootstrap";
 import { Formik } from 'formik';
 import * as yup from 'yup';
+import { useNavigate } from "react-router-dom";
+import { create } from "../../services/UserService";
 
 export default function RegisterForm({ show, handleClose, switchToLogin }) {
+    const navigate = useNavigate();
     const schema = yup.object().shape({
         firstName: yup.string().required('Họ không được để trống'),
         lastName: yup.string().required('Tên không được để trống'),
         username: yup.string().required('Tên đăng nhập không được để trống').min(6, 'Username phải tối thiểu 6 ký tự'),
         password: yup.string().required('Mật khẩu không được để trống').min(8, 'Mật khẩu tối thiểu 8 ký tự'),
+        confirmPassword: yup.string()
+            .required('Vui lòng xác nhận mật khẩu')
+            .oneOf([yup.ref('password'), null], 'Mật khẩu không trùng khớp'),
         address: yup.string().required('Vui lòng nhập Địa chỉ giao hàng'),
         phonenumber: yup.string().required('Vui lòng nhập Số điện thoại').min(10, 'Số điện thoại phải gồm 10 ký tự'),
+        dob: yup.string().required('Vui lòng chọn ngày tháng năm sinh'),
         email: yup.string()
             .required('Email không được bỏ trống')
             .matches(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i, 'Email không đúng định dạng'),
@@ -32,18 +39,26 @@ export default function RegisterForm({ show, handleClose, switchToLogin }) {
             <Modal.Body>
                 <Formik
                     validationSchema={schema}
-                    onSubmit={(values) => {
-                        console.log('Form submitted:', values);
-                        handleClose();
+                    onSubmit={async (values) => {
+                        try {
+                            await create(values);
+                            handleClose();
+                            navigate('/');
+                        } catch (error) {
+                            console.log(error.response.data);
+                            throw error;
+                        }
                     }}
                     initialValues={{
                         firstName: '',
                         lastName: '',
                         username: '',
-                        address: '',
                         password: '',
+                        confirmPassword: '',
+                        address: '',
                         email: '',
                         phonenumber: '',
+                        dob: '',
                         terms: false,
                     }}
                 >
@@ -78,6 +93,7 @@ export default function RegisterForm({ show, handleClose, switchToLogin }) {
                                 </Form.Group>
                             </Row>
 
+                            {/* Row 2: Username & Email */}
                             <Row className="mb-3">
                                 <Form.Group as={Col} md="6">
                                     <Form.Label>Tên đăng nhập</Form.Label>
@@ -92,6 +108,22 @@ export default function RegisterForm({ show, handleClose, switchToLogin }) {
                                 </Form.Group>
 
                                 <Form.Group as={Col} md="6">
+                                    <Form.Label>Email</Form.Label>
+                                    <Form.Control
+                                        type="email"
+                                        name="email"
+                                        placeholder="example@gmail.com"
+                                        value={values.email}
+                                        onChange={handleChange}
+                                        isInvalid={touched.email && !!errors.email}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Row>
+
+                            {/* Row 3: Password & Confirm Password */}
+                            <Row className="mb-3">
+                                <Form.Group as={Col} md="6">
                                     <Form.Label>Mật khẩu</Form.Label>
                                     <Form.Control
                                         type="password"
@@ -102,22 +134,21 @@ export default function RegisterForm({ show, handleClose, switchToLogin }) {
                                     />
                                     <Form.Control.Feedback type="invalid">{errors.password}</Form.Control.Feedback>
                                 </Form.Group>
-                            </Row>
 
-                            <Row className="mb-3">
-                                <Form.Group as={Col} md="12">
-                                    <Form.Label>Địa chỉ giao hàng</Form.Label>
+                                <Form.Group as={Col} md="6">
+                                    <Form.Label>Xác nhận mật khẩu</Form.Label>
                                     <Form.Control
-                                        type="text"
-                                        name="address"
-                                        value={values.address}
+                                        type="password"
+                                        name="confirmPassword"
+                                        value={values.confirmPassword}
                                         onChange={handleChange}
-                                        isInvalid={touched.address && !!errors.address}
+                                        isInvalid={touched.confirmPassword && !!errors.confirmPassword}
                                     />
-                                    <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">{errors.confirmPassword}</Form.Control.Feedback>
                                 </Form.Group>
                             </Row>
 
+                            {/* Row 4: Phone & Date of Birth */}
                             <Row className="mb-3">
                                 <Form.Group as={Col} md="6">
                                     <Form.Label>Số điện thoại</Form.Label>
@@ -132,16 +163,30 @@ export default function RegisterForm({ show, handleClose, switchToLogin }) {
                                 </Form.Group>
 
                                 <Form.Group as={Col} md="6">
-                                    <Form.Label>Email</Form.Label>
+                                    <Form.Label>Ngày tháng năm sinh</Form.Label>
                                     <Form.Control
-                                        type="email"
-                                        name="email"
-                                        placeholder="example@gmail.com"
-                                        value={values.email}
+                                        type="date"
+                                        name="dob"
+                                        value={values.dob}
                                         onChange={handleChange}
-                                        isInvalid={touched.email && !!errors.email}
+                                        isInvalid={touched.dob && !!errors.dob}
                                     />
-                                    <Form.Control.Feedback type="invalid">{errors.email}</Form.Control.Feedback>
+                                    <Form.Control.Feedback type="invalid">{errors.dob}</Form.Control.Feedback>
+                                </Form.Group>
+                            </Row>
+
+                            {/* Row 5: Address */}
+                            <Row className="mb-3">
+                                <Form.Group as={Col} md="12">
+                                    <Form.Label>Địa chỉ giao hàng</Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="address"
+                                        value={values.address}
+                                        onChange={handleChange}
+                                        isInvalid={touched.address && !!errors.address}
+                                    />
+                                    <Form.Control.Feedback type="invalid">{errors.address}</Form.Control.Feedback>
                                 </Form.Group>
                             </Row>
 

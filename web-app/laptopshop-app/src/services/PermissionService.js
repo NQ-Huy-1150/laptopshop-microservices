@@ -15,7 +15,6 @@ export const create = async (payload) => {
 export const fetchAll = async () => {
     try {
         const response = await gateway.get(BASE_URL);
-        console.log(response.data.result);
         return response?.data?.result ?? response?.data;
     } catch (error) {
         console.error('Fail to create permissions : ');

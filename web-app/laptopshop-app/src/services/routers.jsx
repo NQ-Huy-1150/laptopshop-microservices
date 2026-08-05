@@ -9,6 +9,7 @@ import UserDashBoard from '../features/dashboard/user/UserMgmt.jsx';
 import PermissionDashBoard from '../features/dashboard/role_permission/PermissionMgmt.jsx';
 import RoleDashBoard from '../features/dashboard/role_permission/RoleMgmt.jsx';
 import OrderDashBoard from '../features/dashboard/order/OderMgmt.jsx';
+import { UserDashboardLoader } from './loaders.jsx';
 
 const router = createBrowserRouter([
     {
@@ -41,6 +42,12 @@ const router = createBrowserRouter([
             },
             {
                 path: 'users',
+                loader: async ({ request }) => {
+                    const url = new URL(request.url);
+                    const page = parseInt(url.searchParams.get('page') || '1', 10);
+                    const size = parseInt(url.searchParams.get('size') || '8', 10);
+                    return await UserDashboardLoader(page, size);
+                },
                 element: <UserDashBoard />
             },
             {

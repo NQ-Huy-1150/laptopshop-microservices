@@ -20,3 +20,26 @@ export const getInfo = async () => {
         return null;
     }
 };
+
+export const create = async (values) => {
+    try {
+        const response = await gateway.post(`${BASE_URL}/registration`, {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            username: values.username,
+            password: values.password,
+            address: values.address,
+            dob: values.dob || '',
+            phoneNumber: values.phonenumber || '',
+        });
+        const token = response?.data?.result ? response.data.result?.token : null;
+        if (token) {
+            localStorage.setItem('access_token', token);
+        }
+        return response?.data?.result ?? response?.data;
+    } catch (error) {
+        console.error('Fail to create user:', error?.response?.data || error);
+        throw error;
+    }
+};
