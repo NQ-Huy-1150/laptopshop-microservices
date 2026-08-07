@@ -44,6 +44,13 @@ public class ProductController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    ApiResponse<ProductResponse> getProduct(@PathVariable String id) {
+        return ApiResponse.<ProductResponse>builder()
+                .result(productService.fetchById(id))
+                .build();
+    }
+
     @PostMapping("/info")
     ApiResponse<ProductInfoResponse> getInfo(@RequestBody ProductInfoRequest productInfoRequest) {
         return ApiResponse.<ProductInfoResponse>builder()

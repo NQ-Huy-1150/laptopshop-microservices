@@ -25,6 +25,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.kafka.KafkaException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -46,6 +47,7 @@ public class ProductService {
     FileClient fileClient;
     CacheService cacheService;
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ProductResponse create(MultipartFile[] files, ProductCreationRequest request) {
         ApiResponse<List<FileResponse>> fileResponses = null;
@@ -80,6 +82,7 @@ public class ProductService {
         return productResponse;
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public ProductResponse update(MultipartFile[] files, ProductUpdateRequest request) {
         //verify product
@@ -130,6 +133,7 @@ public class ProductService {
                 .build();
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @Transactional
     public void delete(String id) {
         var product = productRepository.findById(id)
@@ -161,5 +165,11 @@ public class ProductService {
                 .totalElements(pageData.getTotalElements())
                 .data(pageData.getContent().stream().map(mapper::toResponse).collect(Collectors.toList()))
                 .build();
+    }
+
+    public ProductResponse fetchById(String id) {
+        var product = productRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        return mapper.toResponse(product);
     }
 }

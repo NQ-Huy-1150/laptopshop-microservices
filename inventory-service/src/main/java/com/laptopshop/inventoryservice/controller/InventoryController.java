@@ -28,6 +28,13 @@ public class InventoryController {
                 .build();
     }
 
+    @GetMapping("/{id}")
+    ApiResponse<InventoryResponse> fetchInventoryById(@PathVariable String id) {
+        return ApiResponse.<InventoryResponse>builder()
+                .result(inventoryService.fetchInventoryById(id))
+                .build();
+    }
+
     @PutMapping("/stocks")
     ApiResponse<InventoryResponse> updateStock(@RequestBody @Valid UpdateStockRequest request) {
         return ApiResponse.<InventoryResponse>builder()

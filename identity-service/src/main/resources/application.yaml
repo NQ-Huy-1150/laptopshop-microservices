@@ -23,4 +23,4 @@ spring:
 app:
   secret-key: ${SECRET_KEY}
   expiration-time: 3600
-  refreshable-time: 36000
+  refreshable-time: 86400

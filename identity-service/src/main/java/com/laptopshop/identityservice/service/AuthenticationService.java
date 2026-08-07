@@ -116,9 +116,7 @@ public class AuthenticationService {
                     .token(generateToken(user))
                     .build();
         } catch (ParseException | AppException e) {
-            return RefreshResponse.builder()
-                    .status("FAILED")
-                    .build();
+            throw new AppException(ErrorCode.FAIL_TO_REFRESH_TOKEN);
         }
     }
 

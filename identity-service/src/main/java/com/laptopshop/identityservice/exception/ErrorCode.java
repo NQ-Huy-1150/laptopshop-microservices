@@ -28,6 +28,7 @@ public enum ErrorCode {
     INVALID_DOB(1016, "Invalid date of birth", HttpStatus.BAD_REQUEST),
     ACCESS_DENIED(1017, "You dont have permission to access this content", HttpStatus.FORBIDDEN),
     JWT_PARSE_ERROR(1018, "Invalid JWT token", HttpStatus.BAD_REQUEST),
+    FAIL_TO_REFRESH_TOKEN(1019, "Fail to refresh token", HttpStatus.BAD_REQUEST),
     ;
 
     int code;

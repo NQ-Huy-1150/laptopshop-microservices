@@ -1,13 +1,40 @@
 import React, { useState } from 'react';
 import { Row, Col, Container, Nav } from 'react-bootstrap';
 import ProductCard from './ProductCard';
-import { mockProducts } from './mockProducts';
+import { useLoaderData, useSearchParams } from 'react-router-dom';
+import HeroShow from '../../shared/ui/SlideShow';
 
 export default function CardLayout() {
     const [filterCategory, setFilterCategory] = useState('ALL');
+    const [searchParams, setSearchParams] = useSearchParams();
+    const payload = useLoaderData();
+
+    // products data
+    const productData = payload?.products ? (payload.products?.data || payload.products) : [];
+    const inventoryData = payload?.inventories ? payload.inventories : [];
+
+    const currentPage = Number(searchParams.get('page')) || 1;
+    const totalPages = Number(searchParams.get('totalPages')) || 1;
+    const totalElements = payload?.products ? payload.products?.totalElements : 0;
+    const isDesc = searchParams.get('isDesc') === 'true';
+    const size = Number(searchParams.get('size')) || 20;
+
+    const handlePageChange = (newPage) => {
+        if (currentPage >= 1 && currentPage <= totalPages) {
+            setSearchParams({ page: currentPage, size: size, isDesc: isDesc });
+        }
+    };
 
     return (
         <Container className="my-4">
+            {/* Banner Carousel HeroShow */}
+            <Row className="mb-4">
+                <Col xs={12}>
+                    <HeroShow />
+                </Col>
+            </Row>
+
+            {/* Header Danh Sách Sản Phẩm */}
             <div className="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 pb-2 border-bottom">
                 <h4 className="fw-bold text-uppercase m-0 text-primary">
                     Laptop Nổi Bật & Khuyến Mãi
@@ -55,11 +82,14 @@ export default function CardLayout() {
 
             {/* Grid Sản Phẩm */}
             <Row className="g-3">
-                {mockProducts.map((product) => (
-                    <Col key={product.id} xs={12} sm={6} md={4} lg={3}>
-                        <ProductCard product={product} />
-                    </Col>
-                ))}
+                {Array.isArray(productData) && productData.map((product) => {
+                    const inventory = inventoryData.find(i => String(i.productId || i.id) === String(product.id));
+                    return (
+                        <Col key={product.id} xs={12} sm={6} md={4} lg={3}>
+                            <ProductCard product={product} inventory={inventory} />
+                        </Col>
+                    );
+                })}
             </Row>
         </Container>
     );

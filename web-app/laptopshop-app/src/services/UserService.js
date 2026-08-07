@@ -16,8 +16,8 @@ export const getInfo = async () => {
         }
         return rs;
     } catch (error) {
-        console.error(`Fail to retrieve user info: ${error}`);
-        return null;
+        console.error(`Fail to retrieve user info: ${error?.response?.data}`);
+        throw error;
     }
 };
 

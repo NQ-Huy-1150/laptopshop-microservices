@@ -57,34 +57,49 @@ export default function NavbarApp() {
     }
 
     useEffect(() => {
+        let ignore = false;
+
         const fetchUserInfo = async () => {
             if (loginStatus) {
                 const token = localStorage.getItem('access_token');
                 if (token) {
                     try {
                         const signedJwt = jwtDecode(token);
-                        var roleList = signedJwt.scope ? signedJwt.scope.split(' ') : null;
-                        if (roleList.includes("ROLE_ADMIN")) {
-                            setIsAdmin(true);
-                        }
-                        setRoles(roleList);
+                        const roleList = signedJwt.scope ? signedJwt.scope.split(' ') : null;
+
                         const userData = await getInfo();
-                        if (userData?.username) {
-                            setUsername(userData.username);
+                        console.log(ignore);
+
+                        if (!ignore) {
+                            if (roleList?.includes("ROLE_ADMIN")) {
+                                setIsAdmin(true);
+                            }
+                            setRoles(roleList);
+                            if (userData?.username) {
+                                setUsername(userData.username);
+                            }
                         }
                     } catch (error) {
-                        console.error("Lỗi khi tải thông tin user:", error);
+                        if (!ignore) {
+                            console.error("Lỗi khi tải thông tin user:", error);
+                        }
                     }
                 }
             } else {
-                setIsAdmin(false);
-                setUsername(null);
-                setRoles(null);
-                localStorage.removeItem('currentUser');
+                if (!ignore) {
+                    setIsAdmin(false);
+                    setUsername(null);
+                    setRoles(null);
+                    localStorage.removeItem('currentUser');
+                }
             }
         };
 
         fetchUserInfo();
+
+        return () => {
+            ignore = true;
+        };
     }, [loginStatus]);
 
     useEffect(() => {

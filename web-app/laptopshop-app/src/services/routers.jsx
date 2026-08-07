@@ -8,9 +8,13 @@ import { ProductDashBoard, RolePermissionDashBoard } from './loaders.jsx';
 import UserDashBoard from '../features/dashboard/user/UserMgmt.jsx';
 import PermissionDashBoard from '../features/dashboard/role_permission/PermissionMgmt.jsx';
 import RoleDashBoard from '../features/dashboard/role_permission/RoleMgmt.jsx';
-import OrderDashBoard from '../features/dashboard/order/OderMgmt.jsx';
+import OrderDashBoard from '../features/dashboard/order/OrderMgmt.jsx';
 import { UserDashboardLoader } from './loaders.jsx';
-
+import { HomePageProducts } from './loaders.jsx';
+import ProductDetailApp from '../features/product/ProductDetail.jsx';
+import { productCache } from './ProductCache.js';
+import { getInventoryById } from './InventoryService.js';
+import { getProductById } from './ProductService.js';
 const router = createBrowserRouter([
     {
         path: '/',
@@ -18,7 +22,37 @@ const router = createBrowserRouter([
         children: [
             {
                 index: true,
+                loader: async ({ request }) => {
+                    const url = new URL(request.url);
+                    const page = parseInt(url.searchParams.get('page') || 1, 10);
+                    const size = parseInt(url.searchParams.get('size') || 20, 10);
+                    const isDesc = url.searchParams.get('isDesc') == 'true';
+                    return await HomePageProducts(page, size, isDesc);
+                },
                 element: <CardLayout />,
+            },
+            {
+                path: '/products/:id',
+                loader: async ({ params }) => {
+                    const productId = params.id;
+
+                    const cached = productCache.get(productId);
+                    console.log(cached);
+
+                    if (cached) {
+                        console.log("product existed in cache -> return data");
+                        return cached;
+                    }
+                    console.log('get data from db');
+
+                    const inventory = await getInventoryById(productId);
+                    const product = await getProductById(productId);
+                    return {
+                        product: product,
+                        inventory: inventory
+                    }
+                },
+                element: <ProductDetailApp />
             },
         ],
     },

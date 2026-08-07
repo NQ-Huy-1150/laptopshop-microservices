@@ -24,10 +24,15 @@ export const fetchAllWithPagination = async (page, size, isDesc) => {
             params.isDesc = isDesc;
         }
 
-        const response = await gateway.get(BASE_URL, { params });
+        const response = await gateway.get(BASE_URL, { params }, {
+            skipAuth: true,
+            headers: {
+                Authorization: ''
+            }
+        });
         return response?.data?.result ?? response?.data;
     } catch (error) {
-        console.error(`Fail to fetch products: ${error}`);
+        console.error(`Fail to fetch products: ${error?.response?.data}`);
         return null;
     }
 };
@@ -68,7 +73,7 @@ export const createProduct = async (payload) => {
         return response?.data?.result ?? response?.data;
 
     } catch (error) {
-        console.error(`Fail to create product: ${error}`);
+        console.error(`Fail to create product: ${error?.response?.data}`);
         throw error;
     }
 };
@@ -120,6 +125,21 @@ export const deleteProduct = async (id) => {
         return response?.data
     } catch (error) {
         console.log('Fail to delete product');
+        console.log(error.response.data);
+        throw error;
+    }
+}
+export const getProductById = async (id) => {
+    try {
+        const response = await gateway.get(`${BASE_URL}/${id}`, {
+            skipAuth: true,
+            headers: {
+                Authorization: ''
+            }
+        });
+        return response?.data?.result ?? response?.data
+    } catch (error) {
+        onsole.log('Fail to fetch product');
         console.log(error.response.data);
         throw error;
     }

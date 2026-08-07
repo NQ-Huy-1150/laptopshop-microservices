@@ -132,4 +132,10 @@ public class InventoryService {
     public List<InventoryResponse> fetchAllInventory() {
         return inventoryRepository.findAll().stream().map(inventoryMapper::toInventoryResponse).toList();
     }
+
+    public InventoryResponse fetchInventoryById(String id) {
+        var inventory = inventoryRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        return inventoryMapper.toInventoryResponse(inventory);
+    }
 }

@@ -1,3 +1,4 @@
+import { data } from "react-router-dom";
 import gateway from "./ApiClient";
 
 const BASE_URL = '/product/brands';
@@ -7,7 +8,8 @@ export const create = async (payload) => {
         const response = await gateway.post(BASE_URL, payload);
         return response?.data?.result ?? response?.data;
     } catch (error) {
-        console.error(`Fail to create brand: ${error}`);
+        console.error(`Fail to create brand:`);
+        console.error(error.response.data);
         return null;
     }
 };
@@ -17,7 +19,8 @@ export const fetchAll = async () => {
         const response = await gateway.get(BASE_URL);
         return response?.data?.result ?? response?.data;
     } catch (error) {
-        console.error(`Fail to fetch all brands: ${error}`);
+        console.error(`Fail to fetch all brands: `);
+        console.error(error.response.data);
         return null;
     }
 };

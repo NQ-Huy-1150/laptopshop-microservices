@@ -40,6 +40,11 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             "/identity/users/registration",
             "/identity/auth/.*",
             "/file/media/download/.*",
+            "/product/products",
+            "/product/products/.*",
+            "/inventory/management",
+            "/inventory/management/.*",
+
     };
     @NonFinal
     @Value("${app.prefix}")
@@ -66,7 +71,7 @@ public class AuthenticationFilter implements GlobalFilter, Ordered {
             if (!response.getResult().isValid()) {
                 return unauthenticated(exchange.getResponse());
             }
-            log.info("forwarded request -> identity service");
+            log.info("forwarded request");
             return chain.filter(exchange);
         }).onErrorResume(e -> {
             log.error("AuthenticationFilter error", e);

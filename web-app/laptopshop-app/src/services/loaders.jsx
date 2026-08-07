@@ -49,3 +49,18 @@ export const UserDashboardLoader = async (page = 1, size = 5) => {
         throw error;
     }
 }
+export const HomePageProducts = async (page = 1, size = 20, isDesc = false) => {
+    try {
+        const productData = await fetchAllProduct(page, size, isDesc);
+        const inventoryData = await fetchAllInventory();
+        console.log(productData);
+        console.log(inventoryData);
+        return {
+            products: productData,
+            inventories: inventoryData
+        }
+    } catch (error) {
+        console.error(error?.response?.data);
+        throw error;
+    }
+}

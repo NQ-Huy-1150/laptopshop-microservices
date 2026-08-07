@@ -1,10 +1,19 @@
 import React from 'react';
 import { Card, Button } from 'react-bootstrap';
-
-export default function ProductCard({ product }) {
+import { useNavigate } from 'react-router-dom';
+import { productCache } from '../../services/ProductCache';
+export default function ProductCard({ product, inventory }) {
     const formatCurrency = (amount) => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
     };
+    const navigate = useNavigate();
+    const handleViewDetail = () => {
+        productCache.set(product.id, {
+            product: product,
+            inventory: inventory
+        });
+        navigate(`/products/${product.id}`)
+    }
 
     return (
         <Card className="h-100 shadow-sm border-0 product-card position-relative overflow-hidden">
@@ -42,7 +51,7 @@ export default function ProductCard({ product }) {
                     </Card.Title>
 
                     <div className="d-flex mb-3">
-                        <Card.Text>{product.cpu}, {product.vga}, {product.ram}, {product.ssd}</Card.Text>
+                        <Card.Text>{product.specs}</Card.Text>
                     </div>
                 </div>
 
@@ -54,7 +63,7 @@ export default function ProductCard({ product }) {
                     </div>
 
                     <div className="d-grid gap-1">
-                        <Button variant="outline-primary" size="sm" className="fw-semibold">
+                        <Button variant="outline-primary" size="sm" className="fw-semibold" onClick={handleViewDetail}>
                             Xem Chi Tiết
                         </Button>
                     </div>
