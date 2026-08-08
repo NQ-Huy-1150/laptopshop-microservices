@@ -75,6 +75,10 @@ public class CartDetailService {
     public void deleteCartDetail(String id) {
         CartDetail cartDetail = cartDetailRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.CART_DETAIL_NOT_FOUND));
-        cartDetailRepository.delete(cartDetail);
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (!cartDetail.getCart().getUserId().equals(userId)) {
+            throw new AppException(ErrorCode.CART_DETAIL_NOT_FOUND);
+        }
+        cartDetailRepository.deleteById(cartDetail.getId());
     }
 }

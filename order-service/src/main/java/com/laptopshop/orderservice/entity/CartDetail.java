@@ -22,7 +22,7 @@ public class CartDetail {
     long quantity;
     BigDecimal price;
     // many cartDetail belong to one cart
-    @ManyToOne(fetch = FetchType.LAZY, cascade = {CascadeType.ALL})
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cartId")
     Cart cart;
 

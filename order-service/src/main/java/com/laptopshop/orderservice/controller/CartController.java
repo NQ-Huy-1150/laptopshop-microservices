@@ -9,8 +9,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -26,9 +24,10 @@ public class CartController {
     }
 
     @GetMapping
-    ApiResponse<List<CartResponse>> getAllCard() {
-        return ApiResponse.<List<CartResponse>>builder()
-                .result(cartService.getAllCart())
+    ApiResponse<CartResponse> getCurrentCart() {
+        return ApiResponse.<CartResponse>builder()
+                .result(cartService.getCurrentUserCart())
                 .build();
     }
+
 }

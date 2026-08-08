@@ -1,9 +1,6 @@
 package com.laptopshop.orderservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -25,7 +22,7 @@ public class Cart {
     String userId;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "cart", orphanRemoval = true)
+    @OneToMany(mappedBy = "cart", orphanRemoval = true, cascade = CascadeType.ALL)
     List<CartDetail> cartDetails;
 
 }

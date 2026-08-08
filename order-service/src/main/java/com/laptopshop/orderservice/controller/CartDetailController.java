@@ -23,7 +23,7 @@ public class CartDetailController {
         return ApiResponse.<CartDetailResponse>builder().build();
     }
 
-    @DeleteMapping("/delete/{id}")
+    @DeleteMapping("/{id}")
     public ApiResponse<?> deleteCartDetail(@PathVariable String id) {
         cartDetailService.deleteCartDetail(id);
         return ApiResponse.builder()

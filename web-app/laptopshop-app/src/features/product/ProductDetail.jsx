@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useLoaderData, useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Container, Badge, Button, Card, Tab, Tabs, Form, Breadcrumb, Toast, ToastContainer } from 'react-bootstrap';
+import { addProductToCart } from '../../services/CartService';
+import { isLogin } from '../../services/AuthenticationService';
 
 export default function ProductDetailApp() {
     const navigate = useNavigate();
@@ -16,6 +18,7 @@ export default function ProductDetailApp() {
     const [quantity, setQuantity] = useState(1);
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState('');
+    const [toastVariant, setToastVariant] = useState('dark');
 
     const stock = Number(inventory?.stock ?? 0);
     const isAvailable = stock > 0;
@@ -34,14 +37,41 @@ export default function ProductDetailApp() {
         });
     };
 
-    const handleAddToCart = () => {
-        setToastMessage(`Đã thêm ${quantity} x ${product?.name} vào giỏ hàng!`);
-        setShowToast(true);
+    const handleAddToCart = async () => {
+        if (!isLogin()) {
+            setToastVariant('warning');
+            setToastMessage('Vui lòng đăng nhập sử dụng tính năng này !');
+            setShowToast(true);
+            return;
+        }
+
+        try {
+            await addProductToCart(product, quantity);
+            setToastVariant('success');
+            setToastMessage(`🛒 Đã thêm ${quantity} x ${product?.name} vào giỏ hàng thành công!`);
+            setShowToast(true);
+        } catch (error) {
+            console.error("Lỗi khi thêm vào giỏ hàng:", error);
+            setToastVariant('danger');
+            setToastMessage('Có lỗi xảy ra khi thêm vào giỏ hàng.');
+            setShowToast(true);
+        }
     };
 
-    const handleBuyNow = () => {
-        setToastMessage(`Đang chuyển hướng thanh toán cho ${quantity} x ${product?.name}...`);
-        setShowToast(true);
+    const handleBuyNow = async () => {
+        if (!isLogin()) {
+            setToastVariant('warning');
+            setToastMessage('Vui lòng đăng nhập sử dụng tính năng này !');
+            setShowToast(true);
+            return;
+        }
+
+        try {
+            await addProductToCart(product, quantity);
+            navigate('/cart');
+        } catch (error) {
+            console.error("Lỗi mua ngay:", error);
+        }
     };
 
     if (!product) {
@@ -302,13 +332,16 @@ export default function ProductDetailApp() {
                 </Col>
             </Row>
 
-            <ToastContainer position="bottom-end" className="p-3 position-fixed" style={{ zIndex: 1055 }}>
-                <Toast show={showToast} onClose={() => setShowToast(false)} delay={3000} autohide bg="dark">
+            {/* Notification Toast */}
+            <ToastContainer position="top-end" className="p-3 position-fixed top-0 end-0" style={{ zIndex: 9999, marginTop: '65px' }}>
+                <Toast show={showToast} onClose={() => setShowToast(false)} delay={3500} autohide bg={toastVariant}>
                     <Toast.Header>
                         <strong className="me-auto text-primary">Thông báo</strong>
                         <small>Vừa xong</small>
                     </Toast.Header>
-                    <Toast.Body className="text-white fs-7">{toastMessage}</Toast.Body>
+                    <Toast.Body className={`fs-7 fw-semibold ${toastVariant === 'warning' ? 'text-dark' : 'text-white'}`}>
+                        {toastMessage}
+                    </Toast.Body>
                 </Toast>
             </ToastContainer>
         </Container>

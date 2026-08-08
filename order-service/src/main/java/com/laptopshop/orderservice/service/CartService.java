@@ -77,4 +77,10 @@ public class CartService {
     public List<CartResponse> getAllCart() {
         return cartRepository.findAll().stream().map(cartMapper::toResponse).toList();
     }
+
+    public CartResponse getCurrentUserCart() {
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        var cart = cartRepository.findFirstByStatusAndUserIdOrderByUpdatedAtDesc(Status.PENDING.name(), userId);
+        return cart.map(cartMapper::toResponse).orElse(null);
+    }
 }

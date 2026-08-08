@@ -11,6 +11,7 @@ export default function CardLayout() {
 
     // products data
     const productData = payload?.products ? (payload.products?.data || payload.products) : [];
+    const products = productData.filter(product => product.status == 'ACTIVE') ?? [];
     const inventoryData = payload?.inventories ? payload.inventories : [];
 
     const currentPage = Number(searchParams.get('page')) || 1;
@@ -82,7 +83,7 @@ export default function CardLayout() {
 
             {/* Grid Sản Phẩm */}
             <Row className="g-3">
-                {Array.isArray(productData) && productData.map((product) => {
+                {Array.isArray(products) && products.map((product) => {
                     const inventory = inventoryData.find(i => String(i.productId || i.id) === String(product.id));
                     return (
                         <Col key={product.id} xs={12} sm={6} md={4} lg={3}>

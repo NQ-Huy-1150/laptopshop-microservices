@@ -15,6 +15,8 @@ import ProductDetailApp from '../features/product/ProductDetail.jsx';
 import { productCache } from './ProductCache.js';
 import { getInventoryById } from './InventoryService.js';
 import { getProductById } from './ProductService.js';
+import Cart from '../features/cart/Cart.jsx';
+import { getCurrentCart } from './CartService.js';
 const router = createBrowserRouter([
     {
         path: '/',
@@ -54,6 +56,13 @@ const router = createBrowserRouter([
                 },
                 element: <ProductDetailApp />
             },
+            {
+                path: '/cart',
+                loader: async () => {
+                    return await getCurrentCart();
+                },
+                element: <Cart />
+            }
         ],
     },
     {
