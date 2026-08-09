@@ -43,3 +43,26 @@ export const create = async (values) => {
         throw error;
     }
 };
+
+export const updateAddress = async (address) => {
+    try {
+        const response = await gateway.put(`${BASE_URL}/address`, {
+            address: address
+        });
+
+        const result = response?.data?.result ?? response?.data;
+        const updatedAddr = result?.address || address;
+
+        const userStr = localStorage.getItem('currentUser');
+        if (userStr) {
+            const user = JSON.parse(userStr);
+            user.address = updatedAddr;
+            user.adrress = updatedAddr;
+            localStorage.setItem('currentUser', JSON.stringify(user));
+        }
+        return result;
+    } catch (error) {
+        console.error('Fail to update address:', error?.response?.data || error);
+        throw error;
+    }
+};

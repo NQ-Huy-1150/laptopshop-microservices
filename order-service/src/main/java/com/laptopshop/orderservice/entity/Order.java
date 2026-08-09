@@ -7,6 +7,7 @@ import jakarta.persistence.Table;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -25,6 +26,7 @@ public class Order {
     String userId;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
+    BigDecimal totalAmount;
     @OneToMany(mappedBy = "order", orphanRemoval = true)
     List<OrderDetail> orderDetails;
 }

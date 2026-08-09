@@ -1,5 +1,6 @@
 package com.laptopshop.identityservice.service;
 
+import com.laptopshop.identityservice.dto.request.AddressUpdateRequest;
 import com.laptopshop.identityservice.dto.request.UserCreationRequest;
 import com.laptopshop.identityservice.dto.request.UserDashboardUpdateRequest;
 import com.laptopshop.identityservice.dto.request.UserUpdateRequest;
@@ -21,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -70,7 +72,22 @@ public class UserService {
         user.setLastName(request.getLastName());
         user.setDob(request.getDob());
         user.setEmail(request.getEmail());
+        user.setAddress(request.getAddress());
         return this.userMapper.toUpdateResponse(this.userRepository.save(user));
+    }
+
+    @Transactional
+    public AddressUpdateResponse updateAddress(AddressUpdateRequest request) {
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (!request.getAddress().equals(user.getAddress())) {
+            user.setAddress(request.getAddress());
+            user = userRepository.save(user);
+        }
+        return AddressUpdateResponse.builder()
+                .address(user.getAddress())
+                .build();
     }
 
     @Transactional

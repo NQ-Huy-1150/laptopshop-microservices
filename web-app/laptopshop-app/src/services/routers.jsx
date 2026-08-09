@@ -16,6 +16,7 @@ import { productCache } from './ProductCache.js';
 import { getInventoryById } from './InventoryService.js';
 import { getProductById } from './ProductService.js';
 import Cart from '../features/cart/Cart.jsx';
+import Checkout from '../features/cart/Checkout.jsx';
 import { getCurrentCart } from './CartService.js';
 const router = createBrowserRouter([
     {
@@ -62,6 +63,13 @@ const router = createBrowserRouter([
                     return await getCurrentCart();
                 },
                 element: <Cart />
+            },
+            {
+                path: '/checkout',
+                loader: async () => {
+                    return await getCurrentCart();
+                },
+                element: <Checkout />
             }
         ],
     },

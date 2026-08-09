@@ -1,11 +1,9 @@
 package com.laptopshop.identityservice.controller;
 
+import com.laptopshop.identityservice.dto.request.AddressUpdateRequest;
 import com.laptopshop.identityservice.dto.request.UserCreationRequest;
 import com.laptopshop.identityservice.dto.request.UserUpdateRequest;
-import com.laptopshop.identityservice.dto.response.ApiResponse;
-import com.laptopshop.identityservice.dto.response.UserCreationResponse;
-import com.laptopshop.identityservice.dto.response.UserInfo;
-import com.laptopshop.identityservice.dto.response.UserUpdateResponse;
+import com.laptopshop.identityservice.dto.response.*;
 import com.laptopshop.identityservice.service.UserService;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
@@ -33,6 +31,13 @@ public class UserController {
     public ApiResponse<UserUpdateResponse> update(@RequestBody @Valid UserUpdateRequest request) {
         return ApiResponse.<UserUpdateResponse>builder()
                 .result(this.userService.update(request))
+                .build();
+    }
+
+    @PutMapping("/address")
+    public ApiResponse<AddressUpdateResponse> updateAddress(@RequestBody @Valid AddressUpdateRequest request) {
+        return ApiResponse.<AddressUpdateResponse>builder()
+                .result(this.userService.updateAddress(request))
                 .build();
     }
 

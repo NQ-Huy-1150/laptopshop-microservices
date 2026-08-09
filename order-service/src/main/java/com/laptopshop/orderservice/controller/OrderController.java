@@ -7,15 +7,17 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
+@RequestMapping("/orders")
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderController {
     EventService eventService;
 
-    @PostMapping("/orders")
+    @PostMapping
     ApiResponse<OrderEvent> create() {
         return ApiResponse.<OrderEvent>builder()
                 .result(eventService.handleCreateOrder())

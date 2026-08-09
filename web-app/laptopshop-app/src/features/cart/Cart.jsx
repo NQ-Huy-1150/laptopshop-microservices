@@ -61,9 +61,7 @@ export default function Cart() {
     };
 
     const handleCheckout = () => {
-        setToastMsg('Đang khởi tạo đơn hàng & chuyển hướng sang trang Đặt Hàng...');
-        setShowToast(true);
-        // Có thể navigate sang /checkout hoặc trigger API order tại đây
+        navigate('/checkout');
     };
 
     if (!payload || cartDetails.length === 0) {
@@ -95,7 +93,7 @@ export default function Cart() {
             </Breadcrumb>
 
             <div className="mb-4">
-                <h3 className="fw-bold text-dark m-0">🛒 Giỏ Hàng Của Bạn</h3>
+                <h3 className="fw-bold text-dark m-0">Giỏ Hàng Của Bạn</h3>
                 <span className="text-muted fs-7">Bạn đang có <strong>{cartDetails.length}</strong> loại sản phẩm trong giỏ</span>
             </div>
 
@@ -179,7 +177,7 @@ export default function Cart() {
                                 className="w-100 fw-bold py-2.5 shadow-sm d-flex align-items-center justify-content-center gap-2"
                                 onClick={handleCheckout}
                             >
-                                TIẾN HÀNH ĐẶT HÀNG
+                                ĐẶT HÀNG
                             </Button>
                         </Card>
 
@@ -194,7 +192,7 @@ export default function Cart() {
                             </div>
                             <div className="d-flex align-items-center gap-2">
                                 <span>🔄</span>
-                                <span>Đổi trả dễ dàng trong vòng 30 ngày</span>
+                                <span>Đổi trả dễ dàng trong vòng 7 ngày đầu tiên</span>
                             </div>
                         </Card>
                     </div>
