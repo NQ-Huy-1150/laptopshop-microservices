@@ -36,7 +36,7 @@ export default function Checkout() {
                 const fullName = `${userObj.firstname || userObj.firstName || ''} ${userObj.lastname || userObj.lastName || ''}`.trim() || userObj.username || '';
                 setRecipientName(fullName);
                 setRecipientPhone(userObj.phonenumber || userObj.phoneNumber || '');
-                
+
                 const addr = userObj.address || userObj.adrress || '';
                 setShippingAddress(addr);
                 setInitialAddress(addr);
@@ -100,12 +100,7 @@ export default function Checkout() {
             const orderPayload = {
                 orderNote,
                 paymentMethod,
-                totalAmount,
-                cartDetails: itemsData.map(i => ({
-                    productId: i.productId,
-                    quantity: i.quantity,
-                    price: i.price
-                }))
+                totalAmount
             };
 
             await createOrder(orderPayload);

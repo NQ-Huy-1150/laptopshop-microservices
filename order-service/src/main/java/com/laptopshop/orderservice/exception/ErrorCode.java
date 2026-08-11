@@ -18,6 +18,7 @@ public enum ErrorCode {
     CANT_GET_PRODUCT_INFO(1025, "cannot get product info", HttpStatus.BAD_REQUEST),
     CURRENT_CART_NOT_FOUND(1026, "Current cart not found", HttpStatus.NOT_FOUND),
     ORDER_NOT_FOUND(1027, "Order not found", HttpStatus.NOT_FOUND),
+    FAIL_TO_CREATE_ORDER(1028, "Fail to create order", HttpStatus.BAD_REQUEST),
     ;
 
     int code;

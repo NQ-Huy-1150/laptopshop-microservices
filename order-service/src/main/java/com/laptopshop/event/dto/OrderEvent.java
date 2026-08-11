@@ -1,11 +1,10 @@
 package com.laptopshop.event.dto;
 
 import com.laptopshop.orderservice.dto.response.OrderDetailResponse;
-import jakarta.persistence.OneToMany;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Data
@@ -17,8 +16,7 @@ public class OrderEvent {
     String id;
     String status;
     String userId;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "order", orphanRemoval = true)
+    BigDecimal totalAmount;
+    String paymentMethod;
     List<OrderDetailResponse> orderDetails;
 }

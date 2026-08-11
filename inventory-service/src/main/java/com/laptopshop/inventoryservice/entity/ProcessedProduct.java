@@ -5,7 +5,7 @@ import jakarta.persistence.Id;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -17,5 +17,5 @@ import java.time.Instant;
 public class ProcessedProduct {
     @Id
     String productId;
-    Instant handleAt;
+    LocalDateTime handleAt;
 }

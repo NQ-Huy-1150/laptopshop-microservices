@@ -1,6 +1,8 @@
 package com.laptopshop.orderservice.service;
 
 import com.laptopshop.event.dto.OrderEvent;
+import com.laptopshop.event.dto.TransactionEvent;
+import com.laptopshop.orderservice.dto.request.OrderCreationRequest;
 import com.laptopshop.orderservice.entity.Cart;
 import com.laptopshop.orderservice.entity.Order;
 import com.laptopshop.orderservice.entity.OrderDetail;
@@ -15,6 +17,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.KafkaException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -32,9 +35,10 @@ public class OrderService {
     CartRepository cartRepository;
     OrderDetailService orderDetailService;
     OrderMapper orderMapper;
+    OrderEventProducer producer;
 
     @Transactional
-    public OrderEvent create() {
+    public OrderEvent create(OrderCreationRequest request) {
         var userId = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<Cart> optional = cartRepository
                 .findFirstByStatusAndUserIdOrderByUpdatedAtDesc(Status.PENDING.name(), userId);
@@ -47,6 +51,9 @@ public class OrderService {
                 .id(UUID.randomUUID().toString())
                 .userId(userId)
                 .status(Status.PENDING.name())
+                .stockIssueStatus(Status.PENDING.name())
+                .transactionStatus(Status.PENDING.name())
+                .totalAmount(request.getTotalAmount())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -59,6 +66,45 @@ public class OrderService {
         }
         order.setOrderDetails(data);
         order = orderRepository.save(order);
-        return orderMapper.toOrderEvent(order);
+        var event = orderMapper.toOrderEvent(order);
+        event.setPaymentMethod(request.getPaymentMethod());
+        event.setTotalAmount(request.getTotalAmount());
+        try {
+            producer.submitOrder(event);
+        } catch (KafkaException e) {
+            throw new AppException(ErrorCode.FAIL_TO_CREATE_ORDER);
+        }
+        return event;
+    }
+
+    @Transactional
+    public void tryFinalizeOrder(String orderId) {
+        var order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
+        if (!order.getStatus().equals(Status.PENDING.name())) {
+            return;
+        }
+        if (order.getTransactionStatus().equals(Status.SUCCESS.name())
+                && order.getStockIssueStatus().equals(Status.SUCCESS.name())) {
+            order.setStatus(Status.CONFIRMED.name());
+            orderRepository.save(order);
+        } else if (order.getStockIssueStatus().equals(Status.FAILED.name())
+                && order.getTransactionStatus().equals(Status.SUCCESS.name())) {
+            producer.handleStockIssueFailed(TransactionEvent.builder()
+                    .transactionId(order.getTransactionId())
+                    .isSuccess(false)
+                    .build());
+            order.setStatus(Status.FAILED.name());
+        } else if (order.getTransactionStatus().equals(Status.FAILED.name())
+                && order.getStockIssueStatus().equals(Status.SUCCESS.name())) {
+
+            producer.handleRevertStock(orderMapper.toOrderEvent(order));
+            order.setStatus(Status.FAILED.name());
+
+        } else if (order.getTransactionStatus().equals(Status.FAILED.name())
+                && order.getStockIssueStatus().equals(Status.FAILED.name())) {
+            order.setStatus(Status.FAILED.name());
+        }
+        orderRepository.save(order);
     }
 }

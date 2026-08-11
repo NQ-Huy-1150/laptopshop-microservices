@@ -25,6 +25,7 @@ public enum ErrorCode {
     UPDATE_TYPE_NOT_FOUND(1027, "Update type not found", HttpStatus.NOT_FOUND),
     FAIL_TO_SEND_OUT_OF_STOCK_MESSAGE(1028, "Fail to send out of stock message to kafka", HttpStatus.INTERNAL_SERVER_ERROR),
     FAIL_TO_SEND_RESTOCK_MESSAGE(1029, "Fail to send restock message to kafka", HttpStatus.INTERNAL_SERVER_ERROR),
+    FAIL_TO_REVERT_STOCK(1030, "Fail to revert stock", HttpStatus.INTERNAL_SERVER_ERROR),
     ;
 
     int code;

@@ -23,6 +23,9 @@ public class Order {
     @Id
     String id;
     String status;
+    String stockIssueStatus;
+    String transactionStatus;
+    String transactionId;
     String userId;
     LocalDateTime createdAt;
     LocalDateTime updatedAt;

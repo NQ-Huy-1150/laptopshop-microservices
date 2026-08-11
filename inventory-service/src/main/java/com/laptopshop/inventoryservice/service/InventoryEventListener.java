@@ -1,11 +1,18 @@
 package com.laptopshop.inventoryservice.service;
 
 import com.laptopshop.event.dto.*;
+import com.laptopshop.inventoryservice.dto.request.RevertStockRequest;
 import com.laptopshop.inventoryservice.dto.request.StockIssueRequest;
 import com.laptopshop.inventoryservice.entity.ProcessedProduct;
+import com.laptopshop.inventoryservice.entity.ProcessedRevertStock;
+import com.laptopshop.inventoryservice.entity.ProcessedStockIssue;
 import com.laptopshop.inventoryservice.enums.Status;
+import com.laptopshop.inventoryservice.exception.AppException;
+import com.laptopshop.inventoryservice.exception.ErrorCode;
 import com.laptopshop.inventoryservice.repository.InventoryRepository;
 import com.laptopshop.inventoryservice.repository.ProcessedProductRepository;
+import com.laptopshop.inventoryservice.repository.ProcessedRevertStockRepository;
+import com.laptopshop.inventoryservice.repository.ProcessedStockIssueRepository;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +22,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -27,6 +34,8 @@ public class InventoryEventListener {
     InventoryRepository inventoryRepository;
     InventoryEventProducer producer;
     ProcessedProductRepository processedProductRepository;
+    ProcessedStockIssueRepository processedStockIssueRepository;
+    ProcessedRevertStockRepository processedRevertStockRepository;
 
     @KafkaListener(topics = "add-stock-request")
     @Transactional
@@ -39,7 +48,7 @@ public class InventoryEventListener {
             inventoryService.createStock(addStockEvent);
             ProcessedProduct processedProduct = ProcessedProduct.builder()
                     .productId(addStockEvent.getProductId())
-                    .handleAt(Instant.now())
+                    .handleAt(LocalDateTime.now())
                     .build();
             processedProductRepository.save(processedProduct);
             producer.sendAddStockEventStatus(AddStockResponse.builder()
@@ -62,6 +71,9 @@ public class InventoryEventListener {
     @Transactional
     public void handleOrderEvent(OrderEvent orderEvent) {
         log.info("Received Order Event : {}", orderEvent);
+        if (processedStockIssueRepository.existsById(orderEvent.getId())) {
+            return;
+        }
         try {
             orderEvent.getOrderDetails().forEach(orderDetail -> {
                 inventoryService.stockIssue(StockIssueRequest.builder()
@@ -69,6 +81,9 @@ public class InventoryEventListener {
                         .quantity(orderDetail.getQuantity())
                         .build());
             });
+            processedStockIssueRepository.save(new ProcessedStockIssue(
+                    orderEvent.getId(), LocalDateTime.now()
+            ));
             producer.sendStockIssueStatus(StockIssueResponse.builder()
                     .orderId(orderEvent.getId())
                     .isSuccess(true)
@@ -84,6 +99,26 @@ public class InventoryEventListener {
         }
     }
 
+    @Transactional
+    @KafkaListener(topics = "revert-stock")
+    public void handleRevertStock(OrderEvent event) {
+        log.info("Received Revert Stock Event : {}", event);
+        if (processedRevertStockRepository.existsById(event.getId())) {
+            return;
+        }
+        try {
+            event.getOrderDetails().forEach(orderDetail -> {
+                inventoryService.revertStock(RevertStockRequest.builder()
+                        .productId(orderDetail.getProductId())
+                        .quantity(orderDetail.getQuantity())
+                        .build());
+            });
+            processedRevertStockRepository.save(new ProcessedRevertStock(event.getId(), LocalDateTime.now()));
+        } catch (RuntimeException e) {
+            throw new AppException(ErrorCode.FAIL_TO_REVERT_STOCK);
+        }
+    }
+
     @KafkaListener(topics = "delete-product-request")
     @Transactional
     public void deleteProductEvent(DeleteProductEvent deleteProductEvent) {
@@ -93,6 +128,9 @@ public class InventoryEventListener {
             try {
                 if (optional.isPresent()) {
                     var inventory = optional.get();
+                    if (inventory.getStatus().equals(Status.ARCHIVED.name())) {
+                        return;
+                    }
                     inventory.setStatus(Status.ARCHIVED.name());
                     inventoryRepository.save(inventory);
                 }

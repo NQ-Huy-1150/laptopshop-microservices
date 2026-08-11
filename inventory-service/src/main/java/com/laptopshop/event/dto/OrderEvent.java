@@ -5,6 +5,7 @@ import jakarta.persistence.OneToMany;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -17,8 +18,7 @@ public class OrderEvent {
     String id;
     String status;
     String userId;
-    LocalDateTime createdAt;
-    LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "order", orphanRemoval = true)
+    BigDecimal totalAmount;
+    String paymentMethod;
     List<OrderDetailResponse> orderDetails;
 }

@@ -3,6 +3,7 @@ package com.laptopshop.inventoryservice.service;
 import com.laptopshop.event.dto.AddStockEvent;
 import com.laptopshop.event.dto.OutOfStockResponse;
 import com.laptopshop.event.dto.RestockEvent;
+import com.laptopshop.inventoryservice.dto.request.RevertStockRequest;
 import com.laptopshop.inventoryservice.dto.request.StockIssueRequest;
 import com.laptopshop.inventoryservice.dto.request.UpdateStockRequest;
 import com.laptopshop.inventoryservice.dto.response.InventoryResponse;
@@ -98,8 +99,19 @@ public class InventoryService {
         return inventoryMapper.toInventoryResponse(inventory);
     }
 
-    private void revertStock(Inventory inventory, StockIssueRequest request) {
-
+    @Transactional
+    public void revertStock(RevertStockRequest request) {
+        Optional<Inventory> optional = inventoryRepository.findById(request.getProductId());
+        if (optional.isPresent()) {
+            Inventory inventory = optional.get();
+            //revert logic
+            inventory.setStock(inventory.getStock() + request.getQuantity());
+            var newStockIssue = inventory.getStockIssue() - request.getQuantity();
+            if (newStockIssue >= 0) {
+                inventory.setStockIssue(newStockIssue);
+            }
+            inventoryRepository.save(inventory);
+        }
     }
 
     @Transactional
