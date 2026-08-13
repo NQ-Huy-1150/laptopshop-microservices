@@ -64,6 +64,8 @@ public class OrderService {
             log.error("Error while create order detail :{}", e.getMessage());
             throw e;
         }
+        cart.setStatus(Status.CONFIRMED.name());
+        cartRepository.save(cart);
         order.setOrderDetails(data);
         order = orderRepository.save(order);
         var event = orderMapper.toOrderEvent(order);

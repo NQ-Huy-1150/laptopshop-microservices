@@ -52,9 +52,12 @@ public class TransactionEventListener {
             }
             // save processed order
             processedOrderRepository.save(new ProcessedOrder(event.getId(), LocalDateTime.now()));
-        } catch (AppException e) {
-            log.info("Failed to make transaction", e);
-            throw e;
+        } catch (RuntimeException e) {
+            producer.transactionEventResponse(TransactionEvent.builder()
+                    .orderId(event.getId())
+                    .isSuccess(false)
+                    .build());
+            throw new AppException(ErrorCode.FAIL_TO_CREATE_TRANSACTION);
         }
     }
 

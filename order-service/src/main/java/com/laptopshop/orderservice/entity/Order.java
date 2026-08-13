@@ -1,9 +1,6 @@
 package com.laptopshop.orderservice.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -30,6 +27,6 @@ public class Order {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     BigDecimal totalAmount;
-    @OneToMany(mappedBy = "order", orphanRemoval = true)
+    @OneToMany(mappedBy = "order", orphanRemoval = true, cascade = CascadeType.ALL)
     List<OrderDetail> orderDetails;
 }

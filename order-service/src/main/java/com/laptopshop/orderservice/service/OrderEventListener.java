@@ -48,23 +48,24 @@ public class OrderEventListener {
         orderService.tryFinalizeOrder(order.getId());
     }
 
+    @Transactional
     @KafkaListener(topics = "transaction_event")
     public void handleTransactionEvent(TransactionEvent event) {
         var order = orderRepository.findById(event.getOrderId())
                 .orElseThrow(() -> new AppException(ErrorCode.ORDER_NOT_FOUND));
-        if (processedTransactionRepository.existsById(event.getTransactionId())) {
+        if (event.getTransactionId() != null && processedTransactionRepository.existsById(event.getTransactionId())) {
             return;
         }
         log.info("Received transaction event : {}", event);
         if (event.isSuccess()) {
             order.setTransactionStatus(Status.SUCCESS.name());
+            order.setTransactionId(event.getTransactionId());
+            processedTransactionRepository.save(new ProcessedTransaction(event.getTransactionId(),
+                    event.getOrderId(), LocalDateTime.now()));
         } else {
             order.setTransactionStatus(Status.FAILED.name());
         }
-        order.setTransactionId(event.getTransactionId());
         orderRepository.save(order);
-        processedTransactionRepository.save(new ProcessedTransaction(event.getTransactionId(),
-                event.getOrderId(), LocalDateTime.now()));
         orderService.tryFinalizeOrder(order.getId());
     }
 

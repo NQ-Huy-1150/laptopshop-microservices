@@ -6,8 +6,6 @@ import com.laptopshop.transactionservice.dto.response.TransactionMgmtResponse;
 import com.laptopshop.transactionservice.entity.TransactionMgmt;
 import com.laptopshop.transactionservice.enums.PaymentMethod;
 import com.laptopshop.transactionservice.enums.Status;
-import com.laptopshop.transactionservice.exception.AppException;
-import com.laptopshop.transactionservice.exception.ErrorCode;
 import com.laptopshop.transactionservice.repository.TransactionMgmtRepository;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -73,26 +71,18 @@ public class TransactionService {
 
     @Transactional
     public void createCODTransaction(OrderEvent event) {
-        try {
-            TransactionMgmt transactionMgmt = TransactionMgmt.builder()
-                    .totalAmount(event.getTotalAmount())
-                    .orderId(event.getId())
-                    .status(Status.WAITING_FOR_COD_PAYMENT.name())
-                    .paymentMethod(PaymentMethod.COD.name())
-                    .userId(event.getUserId())
-                    .build();
-            transactionMgmt = transactionMgmtRepository.save(transactionMgmt);
-            producer.transactionEventResponse(TransactionEvent.builder()
-                    .orderId(event.getId())
-                    .transactionId(transactionMgmt.getId())
-                    .isSuccess(true)
-                    .build());
-        } catch (RuntimeException e) {
-            producer.transactionEventResponse(TransactionEvent.builder()
-                    .orderId(event.getId())
-                    .isSuccess(false)
-                    .build());
-            throw new AppException(ErrorCode.FAIL_TO_CREATE_TRANSACTION);
-        }
+        TransactionMgmt transactionMgmt = TransactionMgmt.builder()
+                .totalAmount(event.getTotalAmount())
+                .orderId(event.getId())
+                .status(Status.WAITING_FOR_COD_PAYMENT.name())
+                .paymentMethod(PaymentMethod.COD.name())
+                .userId(event.getUserId())
+                .build();
+        transactionMgmt = transactionMgmtRepository.save(transactionMgmt);
+        producer.transactionEventResponse(TransactionEvent.builder()
+                .orderId(event.getId())
+                .transactionId(transactionMgmt.getId())
+                .isSuccess(true)
+                .build());
     }
 }
