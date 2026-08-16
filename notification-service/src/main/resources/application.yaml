@@ -1,0 +1,23 @@
+server:
+  port: 8086
+  servlet:
+    context-path: /notification
+
+spring:
+  application:
+    name: notification-service
+  mongodb:
+    uri: mongodb://root:root@localhost:27017/laptopshop-notification?authSource=admin
+  kafka:
+    bootstrap-servers: localhost:9094
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.laptopshop.event.dto
+
+app:
+  brevo-api: https://api.brevo.com
+  brevo-key: ${BREVO_KEY}

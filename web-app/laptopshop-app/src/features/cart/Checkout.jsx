@@ -18,6 +18,7 @@ export default function Checkout() {
     const [isSavingAddress, setIsSavingAddress] = useState(false);
     const [addressSaved, setAddressSaved] = useState(false);
     const [orderNote, setOrderNote] = useState('');
+    const [email, setEmail] = useState('');
 
     const [paymentMethod, setPaymentMethod] = useState('COD');
 
@@ -40,6 +41,9 @@ export default function Checkout() {
                 const addr = userObj.address || userObj.adrress || '';
                 setShippingAddress(addr);
                 setInitialAddress(addr);
+
+                const emailAddress = userObj.email || '';
+                setEmail(emailAddress);
             }
         } catch (e) {
             console.error("Lỗi khi đọc currentUser:", e);
@@ -98,6 +102,9 @@ export default function Checkout() {
         try {
             setIsSubmitting(true);
             const orderPayload = {
+                email,
+                recipientName,
+                shippingAddress,
                 orderNote,
                 paymentMethod,
                 totalAmount

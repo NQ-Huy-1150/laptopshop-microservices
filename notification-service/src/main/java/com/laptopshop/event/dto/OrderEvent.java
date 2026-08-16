@@ -1,6 +1,6 @@
 package com.laptopshop.event.dto;
 
-import com.laptopshop.inventoryservice.dto.response.OrderDetailResponse;
+import com.laptopshop.notificationservice.dto.response.OrderDetailResponse;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
@@ -17,6 +17,7 @@ public class OrderEvent {
     String status;
     String userId;
     BigDecimal totalAmount;
+    String email;
     String paymentMethod;
     String recipientName;
     String shippingAddress;

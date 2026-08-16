@@ -1,20 +1,17 @@
-package com.laptopshop.orderservice.dto.request;
+package com.laptopshop.notificationservice.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
-
-import java.math.BigDecimal;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class OrderCreationRequest {
-    String email;
-    String orderNote;
+public class OrderInfo {
+    String orderId;
+    String totalAmount;
     String paymentMethod;
-    BigDecimal totalAmount;
     String recipientName;
     String shippingAddress;
 }

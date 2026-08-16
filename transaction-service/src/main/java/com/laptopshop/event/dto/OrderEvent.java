@@ -18,5 +18,7 @@ public class OrderEvent {
     String userId;
     BigDecimal totalAmount;
     String paymentMethod;
+    String recipientName;
+    String shippingAddress;
     List<OrderDetailResponse> orderDetails;
 }

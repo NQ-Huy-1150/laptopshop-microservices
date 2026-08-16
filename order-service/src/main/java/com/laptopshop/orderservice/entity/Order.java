@@ -27,6 +27,7 @@ public class Order {
     LocalDateTime createdAt;
     LocalDateTime updatedAt;
     BigDecimal totalAmount;
+    String note;
     @OneToMany(mappedBy = "order", orphanRemoval = true, cascade = CascadeType.ALL)
     List<OrderDetail> orderDetails;
 }

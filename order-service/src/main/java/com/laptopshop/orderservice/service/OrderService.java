@@ -56,6 +56,7 @@ public class OrderService {
                 .totalAmount(request.getTotalAmount())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
+                .note(request.getOrderNote())
                 .build();
         List<OrderDetail> data = null;
         try {
@@ -71,6 +72,9 @@ public class OrderService {
         var event = orderMapper.toOrderEvent(order);
         event.setPaymentMethod(request.getPaymentMethod());
         event.setTotalAmount(request.getTotalAmount());
+        event.setRecipientName(request.getRecipientName());
+        event.setShippingAddress(request.getShippingAddress());
+        event.setEmail(request.getEmail());
         try {
             producer.submitOrder(event);
         } catch (KafkaException e) {
