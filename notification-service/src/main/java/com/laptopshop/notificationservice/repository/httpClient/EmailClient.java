@@ -1,4 +1,4 @@
-package com.laptopshop.notificationservice.repository;
+package com.laptopshop.notificationservice.repository.httpClient;
 
 import com.laptopshop.notificationservice.dto.request.SendEmailRequest;
 import com.laptopshop.notificationservice.dto.response.EmailResponse;
