@@ -3,6 +3,8 @@ package com.laptopshop.orderservice.service;
 import com.laptopshop.event.dto.OrderEvent;
 import com.laptopshop.event.dto.TransactionEvent;
 import com.laptopshop.orderservice.dto.request.OrderCreationRequest;
+import com.laptopshop.orderservice.dto.response.OrderResponse;
+import com.laptopshop.orderservice.dto.response.PageResponse;
 import com.laptopshop.orderservice.entity.Cart;
 import com.laptopshop.orderservice.entity.Order;
 import com.laptopshop.orderservice.entity.OrderDetail;
@@ -17,6 +19,9 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.kafka.KafkaException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -112,5 +117,18 @@ public class OrderService {
             order.setStatus(Status.FAILED.name());
         }
         orderRepository.save(order);
+    }
+
+    public PageResponse<OrderResponse> fetchAllOrderByCurrentUser(int page, int size) {
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        Sort sort = Sort.by("createdAt").ascending();
+        Pageable pageable = PageRequest.of(page - 1, size, sort);
+        var data = orderRepository.findAllByUserId(userId, pageable);
+        return PageResponse.<OrderResponse>builder()
+                .currentPage(page)
+                .pageSize(data.getSize())
+                .totalElements(data.getTotalElements())
+                .data(data.getContent().stream().map(orderMapper::toResponse).toList())
+                .build();
     }
 }
