@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: profile-service
+  datasource:
+    url: jdbc:mysql://localhost:3306/laptopshop_profile
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+server:
+  port: 8087
+  servlet:
+    context-path: /profile
+
+app:
+  keycloak-url: http://localhost:8180
+  client_id: ${CLIENT_ID}
+  client_secret: ${CLIENT_SECRET}

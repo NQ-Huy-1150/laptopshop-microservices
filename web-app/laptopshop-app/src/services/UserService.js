@@ -1,7 +1,7 @@
 import gateway from "./ApiClient";
 import { jwtDecode } from 'jwt-decode';
 
-const BASE_URL = '/identity/users';
+const BASE_URL = '/profile/users';
 
 export const getInfo = async () => {
     const token = localStorage.getItem('access_token');
