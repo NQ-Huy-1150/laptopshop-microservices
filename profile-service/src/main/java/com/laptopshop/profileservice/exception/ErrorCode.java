@@ -34,7 +34,9 @@ public enum ErrorCode {
     FAIL_TO_RETRIEVE_USER_TOKEN(1022, "Fail to get user token", HttpStatus.BAD_REQUEST),
     FAIL_TO_EXTRACT_USER_ID_FROM_KEYCLOAK_RESPONSE(1023, "Fail to extract user id from keycloak", HttpStatus.BAD_REQUEST),
     FAIL_TO_RETRIEVE_USER_CREDENTIAL(1023, "Fail to get user credential from request", HttpStatus.BAD_REQUEST),
-    FAIL_TO_SEND_REQUEST_TO_KEYCLOAK(1024, "Fail to send request to keycloak", HttpStatus.BAD_REQUEST);
+    FAIL_TO_SEND_REQUEST_TO_KEYCLOAK(1024, "Fail to send request to keycloak", HttpStatus.BAD_REQUEST),
+    USERNAME_ALREADY_EXISTED(1024, "Username already existed ", HttpStatus.BAD_REQUEST),
+    ;
 
     int code;
     String message;

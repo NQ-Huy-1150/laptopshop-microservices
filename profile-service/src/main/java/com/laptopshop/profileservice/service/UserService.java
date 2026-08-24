@@ -1,11 +1,12 @@
 package com.laptopshop.profileservice.service;
 
 import com.laptopshop.profileservice.dto.request.*;
-import com.laptopshop.profileservice.dto.response.TokenExchangeResponse;
-import com.laptopshop.profileservice.dto.response.UserCreationResponse;
-import com.laptopshop.profileservice.dto.response.UserTokenExchangeResponse;
+import com.laptopshop.profileservice.dto.response.*;
+import com.laptopshop.profileservice.entity.User;
 import com.laptopshop.profileservice.exception.AppException;
 import com.laptopshop.profileservice.exception.ErrorCode;
+import com.laptopshop.profileservice.exception.ErrorNormalizer;
+import com.laptopshop.profileservice.mapper.UserDashboardMapper;
 import com.laptopshop.profileservice.mapper.UserMapper;
 import com.laptopshop.profileservice.repository.UserRepository;
 import com.laptopshop.profileservice.repository.httpClient.KeyCloakClient;
@@ -17,7 +18,11 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -32,6 +37,8 @@ public class UserService {
     UserRepository userRepository;
     KeyCloakClient keyCloakClient;
     UserMapper mapper;
+    UserDashboardMapper dashboardMapper;
+    ErrorNormalizer errorNormalizer;
     @NonFinal
     @Value("${app.client_id}")
     String clientId;
@@ -43,9 +50,9 @@ public class UserService {
     @Transactional
     public UserCreationResponse create(UserCreationRequest request) {
         // get client access token
-        TokenExchangeResponse clientToken = null;
+        TokenExchangeResponse clientToken;
         String keycloakUserId;
-        UserTokenExchangeResponse userTokenRequest = null;
+        UserTokenExchangeResponse userTokenRequest;
         try {
             clientToken = keyCloakClient.exchangeClientToken(TokenExchangeParams.builder()
                     .grant_type("client_credentials")
@@ -83,7 +90,7 @@ public class UserService {
                     .build());
         } catch (FeignException e) {
             log.error(e.contentUTF8());
-            throw new AppException(ErrorCode.FAIL_TO_SEND_REQUEST_TO_KEYCLOAK);
+            throw errorNormalizer.handleKeyCloakException(e);
         }
         // add user to db
         if (!StringUtils.hasText(keycloakUserId)) {
@@ -103,5 +110,79 @@ public class UserService {
         var location = Objects.requireNonNull(response.getHeaders().get("Location")).getFirst();
         String[] split = location.split("/");
         return split[split.length - 1];
+    }
+
+    @Transactional
+    public UserUpdateResponse update(UserUpdateRequest request) {
+        User user = this.userRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        user.setFirstName(request.getFirstName());
+        user.setLastName(request.getLastName());
+        user.setDob(request.getDob());
+        user.setEmail(request.getEmail());
+        user.setAddress(request.getAddress());
+        return mapper.toUpdateResponse(this.userRepository.save(user));
+    }
+
+    @Transactional
+    public AddressUpdateResponse updateAddress(AddressUpdateRequest request) {
+        var userId = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        if (!request.getAddress().equals(user.getAddress())) {
+            user.setAddress(request.getAddress());
+            user = userRepository.save(user);
+        }
+        return AddressUpdateResponse.builder()
+                .address(user.getAddress())
+                .build();
+    }
+
+    @Transactional
+    public void delete(String id) {
+        if (!this.userRepository.existsById(id)) {
+            throw new AppException(ErrorCode.USER_NOT_FOUND);
+        }
+        this.userRepository.deleteById(id);
+    }
+
+    @PreAuthorize("#id == authentication.name")
+    public UserInfo getUserInfo(String id) {
+        log.info("get owner info successfully");
+        User user = this.userRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        return UserInfo.builder()
+                .firstName(user.getFirstName())
+                .lastName(user.getLastName())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .phoneNumber(user.getPhoneNumber())
+                .address(user.getAddress())
+                .build();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @Transactional
+    public UserDashboardResponse handleDashboardUpdate(UserDashboardUpdateRequest request) {
+        var user = userRepository.findById(request.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+//        var roles = roleRepository.findAllById(request.getRoles());
+//        user.setRoles(new HashSet<>(roles));
+//        user = userRepository.save(user);
+//        return userDashboardMapper.toResponse(user);
+        return null;
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    public PageResponse<UserDashboardResponse> getAll(int page, int size) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+        var data = userRepository.findAll(pageable);
+        return PageResponse.<UserDashboardResponse>builder()
+                .currentPage(page)
+                .totalPages(data.getTotalPages())
+                .totalElements(data.getTotalElements())
+                .pageSize(data.getSize())
+                .data(data.getContent().stream().map(dashboardMapper::toResponse).toList())
+                .build();
     }
 }

@@ -4,6 +4,7 @@ import com.laptopshop.profileservice.dto.request.UserCreationRequest;
 import com.laptopshop.profileservice.dto.response.ApiResponse;
 import com.laptopshop.profileservice.dto.response.UserCreationResponse;
 import com.laptopshop.profileservice.service.UserService;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,7 +23,7 @@ public class UserController {
     UserService userService;
 
     @PostMapping("/registration")
-    ApiResponse<UserCreationResponse> create(@RequestBody UserCreationRequest request) {
+    ApiResponse<UserCreationResponse> create(@RequestBody @Valid UserCreationRequest request) {
         return ApiResponse.<UserCreationResponse>builder()
                 .result(userService.create(request))
                 .build();
