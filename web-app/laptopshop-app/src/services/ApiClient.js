@@ -1,5 +1,5 @@
 import axios from 'axios';
-
+import { keycloak } from '../App';
 // const url = import.meta.env.VITE_API_GATEWAY + import.meta.env.VITE_API_PREFIX;
 const url = 'http://localhost:8888/api/v1';
 const refreshUrl = '/identity/auth/refresh';
@@ -10,8 +10,7 @@ const gateway = axios.create({
 });
 
 gateway.interceptors.request.use((config) => {
-    const token = localStorage.getItem("access_token");
-
+    const token = keycloak.authenticated && keycloak.token;
     if (config.skipAuth || config.headers.get("Authorization") === '') {
         config.headers.delete("Authorization");
     } else if (token && !config.headers.get("Authorization")) {
@@ -46,7 +45,7 @@ gateway.interceptors.response.use(
         const originalRequest = error?.config;
 
         if (error?.response?.status === 401) {
-            const token = localStorage.getItem('access_token');
+            const token = keycloak.authenticated && keycloak.token;
             if (!token) {
                 return Promise.reject(error);
             }
@@ -65,26 +64,13 @@ gateway.interceptors.response.use(
             isRefreshing = true;
 
             try {
-                const refreshRes = await gateway.post(refreshUrl, {
-                    token: token
-                }, {
-                    skipAuth: true,
-                    headers: { Authorization: '' },
-                    timeout: 5000,
-                });
-
-                const newToken = refreshRes?.data?.result?.token ?? null;
-                const status = refreshRes?.data?.result?.status;
-
-                if (status && newToken) {
-                    localStorage.setItem('access_token', newToken);
-                    onRefreshed(newToken); // đánh thức các request đang chờ
+                const refreshRes = await keycloak.updateToken(60);
+                if (refreshRes) {
+                    onRefreshed(keycloak.token); // đánh thức các request đang chờ
 
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
                     return gateway(originalRequest);
                 }
-
-                localStorage.removeItem('access_token');
                 onRefreshFailed(error);
                 return Promise.reject(error);
 

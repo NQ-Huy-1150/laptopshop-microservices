@@ -17,7 +17,11 @@ spring:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: com.laptopshop.event.dto
-
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/laptopshop
 app:
   brevo-api: https://api.brevo.com
   brevo-key: ${BREVO_KEY}

@@ -2,26 +2,27 @@ import { Navbar, Nav, Form, Button, Container, NavDropdown } from "react-bootstr
 import { useState, useEffect } from "react";
 import logo from "../../assets/react.svg";
 import RegisterForm from "./Register";
-import LoginForm from "./Login";
-import { isLogin, logout } from "../../services/AuthenticationService";
-import { getInfo } from "../../services/UserService";
 import { useNavigate, Link } from 'react-router-dom';
-import { jwtDecode } from "jwt-decode";
+import { useKeycloak } from "@react-keycloak/web";
 
 export default function NavbarApp() {
-    const [loginStatus, setLoginStatus] = useState(isLogin());
+    const { keycloak, initialized } = useKeycloak();
+    const loginStatus = initialized && keycloak.authenticated;
     const [isAdmin, setIsAdmin] = useState(false);
     const [username, setUsername] = useState();
-    const [roles, setRoles] = useState('');
     const [show, setShow] = useState({
         showRegister: false,
         showLogin: false
     });
+    const navigate = useNavigate();
 
-    const handleShowLogin = () => setShow({
-        showRegister: false,
-        showLogin: true
-    });
+    const handleShowLogin = () => {
+        setShow({
+            showRegister: false,
+            showLogin: false
+        });
+        keycloak.login();
+    };
 
     const handleShowRegister = () => setShow({
         showRegister: true,
@@ -33,80 +34,38 @@ export default function NavbarApp() {
         showRegister: false
     });
 
-    const handleCloseLogin = () => setShow({
-        ...show,
-        showLogin: false
-    });
-
-    const navigate = useNavigate();
-
-    const handleLogout = async () => {
-        await logout();
-        setLoginStatus(false);
+    const handleLogout = () => {
+        keycloak.logout();
         navigate('/');
     };
 
-    const handleLoginSuccess = () => {
-        setLoginStatus(true);
-    };
+    const handleLoginSuccess = () => {};
 
     const handleDashBoardPage = () => {
-        if (roles.includes('ROLE_ADMIN')) {
+        const roles = keycloak?.tokenParsed?.realm_access?.roles || [];
+        if (roles.includes('ROLE_ADMIN') || roles.includes('ADMIN')) {
             navigate('/dashboard');
         }
-    }
+    };
 
     useEffect(() => {
         let ignore = false;
+        console.log(`login status : ${keycloak.authenticated}`);
+        console.log(keycloak.token);
+        console.log(keycloak.tokenParsed)
+        if (loginStatus) {
+            setUsername(keycloak?.tokenParsed?.preferred_username);
+        }
+        const roles = keycloak?.tokenParsed?.realm_access?.roles;
+        console.log(roles);
 
-        const fetchUserInfo = async () => {
-            if (loginStatus) {
-                const token = localStorage.getItem('access_token');
-                if (token) {
-                    try {
-                        const signedJwt = jwtDecode(token);
-                        const roleList = signedJwt.scope ? signedJwt.scope.split(' ') : null;
-
-                        const userData = await getInfo();
-                        console.log(ignore);
-
-                        if (!ignore) {
-                            if (roleList?.includes("ROLE_ADMIN")) {
-                                setIsAdmin(true);
-                            }
-                            setRoles(roleList);
-                            if (userData?.username) {
-                                setUsername(userData.username);
-                            }
-                        }
-                    } catch (error) {
-                        if (!ignore) {
-                            console.error("Lỗi khi tải thông tin user:", error);
-                        }
-                    }
-                }
-            } else {
-                if (!ignore) {
-                    setIsAdmin(false);
-                    setUsername(null);
-                    setRoles(null);
-                    localStorage.removeItem('currentUser');
-                }
-            }
-        };
-
-        fetchUserInfo();
-
+        if (roles?.includes("ADMIN")) {
+            setIsAdmin(true);
+        }
         return () => {
             ignore = true;
         };
     }, [loginStatus]);
-
-    useEffect(() => {
-        if (roles) {
-            console.log("Retrieve user roles successfully");
-        }
-    }, [roles])
 
     const greeting = username ? `Xin chào, ${username}` : "Xin chào";
     return (
@@ -180,7 +139,7 @@ export default function NavbarApp() {
                                 <Nav.Link onClick={handleShowRegister} className="me-3 p-2" style={{ cursor: 'pointer' }}>
                                     Đăng ký
                                 </Nav.Link>
-                                <Nav.Link onClick={handleShowLogin} className="me-3 p-2" style={{ cursor: 'pointer' }}>
+                                <Nav.Link onClick={() => keycloak.login()} className="me-3 p-2" style={{ cursor: 'pointer' }}>
                                     Đăng nhập
                                 </Nav.Link>
 
@@ -188,12 +147,6 @@ export default function NavbarApp() {
                                     show={show.showRegister}
                                     handleClose={handleCloseRegister}
                                     switchToLogin={handleShowLogin}
-                                    onLoginSuccess={handleLoginSuccess}
-                                />
-                                <LoginForm
-                                    show={show.showLogin}
-                                    handleClose={handleCloseLogin}
-                                    switchToRegister={handleShowRegister}
                                     onLoginSuccess={handleLoginSuccess}
                                 />
                             </>

@@ -1,5 +1,5 @@
 import gateway from "./ApiClient";
-const BASE_URL = '/identity/dashboard/users';
+const BASE_URL = '/profile/dashboard/users';
 
 export const fetchAll = async (page, size) => {
     try {

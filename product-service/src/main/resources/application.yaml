@@ -19,6 +19,11 @@ spring:
     redis:
       port: 6379
       host: localhost
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/laptopshop
 server:
   port: 8082
   servlet:

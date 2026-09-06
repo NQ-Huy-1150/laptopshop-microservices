@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { useLoaderData, useNavigate, Link } from 'react-router-dom';
 import { Row, Col, Container, Badge, Button, Card, Tab, Tabs, Form, Breadcrumb, Toast, ToastContainer } from 'react-bootstrap';
 import { addProductToCart } from '../../services/CartService';
-import { isLogin } from '../../services/AuthenticationService';
-
+import { useKeycloak } from '@react-keycloak/web';
 export default function ProductDetailApp() {
+    const { keycloak } = useKeycloak();
+    const isLogin = keycloak.authenticated;
     const navigate = useNavigate();
     const payload = useLoaderData() || {};
     const product = payload?.product ?? null;
@@ -38,7 +39,7 @@ export default function ProductDetailApp() {
     };
 
     const handleAddToCart = async () => {
-        if (!isLogin()) {
+        if (!isLogin) {
             setToastVariant('warning');
             setToastMessage('Vui lòng đăng nhập sử dụng tính năng này !');
             setShowToast(true);
@@ -59,7 +60,7 @@ export default function ProductDetailApp() {
     };
 
     const handleBuyNow = async () => {
-        if (!isLogin()) {
+        if (!isLogin) {
             setToastVariant('warning');
             setToastMessage('Vui lòng đăng nhập sử dụng tính năng này !');
             setShowToast(true);

@@ -112,6 +112,12 @@ public class UserService {
         return split[split.length - 1];
     }
 
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public List<UserInfo> fetchUsers() {
+        return userRepository.findAll().stream().map(mapper::toUserInfo).toList();
+    }
+
+
     @Transactional
     public UserUpdateResponse update(UserUpdateRequest request) {
         User user = this.userRepository.findById(request.getId())
@@ -146,10 +152,10 @@ public class UserService {
         this.userRepository.deleteById(id);
     }
 
-    @PreAuthorize("#id == authentication.name")
-    public UserInfo getUserInfo(String id) {
+    @PreAuthorize("#keyCloakId == authentication.name")
+    public UserInfo getUserInfo(String keyCloakId) {
         log.info("get owner info successfully");
-        User user = this.userRepository.findById(id)
+        User user = this.userRepository.findById(keyCloakId)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         return UserInfo.builder()
                 .firstName(user.getFirstName())
@@ -161,7 +167,7 @@ public class UserService {
                 .build();
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @Transactional
     public UserDashboardResponse handleDashboardUpdate(UserDashboardUpdateRequest request) {
         var user = userRepository.findById(request.getId())
@@ -173,7 +179,7 @@ public class UserService {
         return null;
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public PageResponse<UserDashboardResponse> getAll(int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size);
         var data = userRepository.findAll(pageable);

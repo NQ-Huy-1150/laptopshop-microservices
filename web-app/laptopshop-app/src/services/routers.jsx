@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 import HomePage from '../shared/ui/HomePage.jsx';
 import CardLayout from '../features/product/CardLayout.jsx';
 import DashBoardApp from '../features/dashboard/Dashboard.jsx';
@@ -18,6 +18,7 @@ import { getProductById } from './ProductService.js';
 import Cart from '../features/cart/Cart.jsx';
 import Checkout from '../features/cart/Checkout.jsx';
 import { getCurrentCart } from './CartService.js';
+import ProtectedRoute from '../shared/ui/ProtectedRoute.jsx';
 const router = createBrowserRouter([
     {
         path: '/',
@@ -62,20 +63,35 @@ const router = createBrowserRouter([
                 loader: async () => {
                     return await getCurrentCart();
                 },
-                element: <Cart />
+                element: (
+                    <ProtectedRoute>
+                        <Cart />
+                    </ProtectedRoute>
+                ),
+                errorElement: <Navigate to="/" replace />
             },
             {
                 path: '/checkout',
                 loader: async () => {
                     return await getCurrentCart();
                 },
-                element: <Checkout />
+                element: (
+                    <ProtectedRoute>
+                        <Checkout />
+                    </ProtectedRoute>
+                ),
+                errorElement: <Navigate to="/" replace />
             }
         ],
     },
     {
         path: '/dashboard',
-        element: <DashBoardApp />,
+        element: (
+            <ProtectedRoute requiredRole={['ADMIN']}>
+                <DashBoardApp />
+            </ProtectedRoute>
+        ),
+        errorElement: <Navigate to="/" replace />,
         children: [
             {
                 index: true,

@@ -54,9 +54,10 @@ public class AppInitConfig {
                                     .username("admin")
                                     .firstName("admin")
                                     .lastName("ad")
-                                    .email("")
+                                    .email("admin@gmail.com")
                                     .emailVerified(false)
                                     .enabled(true)
+                                    .requiredActions(List.of())
                                     .credentials(List.of(Credential.builder()
                                             .type("password")
                                             .value("admin")
@@ -74,7 +75,8 @@ public class AppInitConfig {
                 user.setUsername("admin");
                 user.setKeyCloakId(extractKeyCloakUserId(response));
                 userRepository.save(user);
-                log.warn("admin users has been created with default password \"admin\", please change it");
+                log.warn("admin users has been created with default password \"admin\"" +
+                        " and default email \"admin@gmail.com\", please change it");
             }
         };
     }

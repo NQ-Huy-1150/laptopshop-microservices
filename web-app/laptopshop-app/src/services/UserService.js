@@ -1,14 +1,14 @@
 import gateway from "./ApiClient";
 import { jwtDecode } from 'jwt-decode';
-
+import { keycloak } from "../App";
 const BASE_URL = '/profile/users';
 
 export const getInfo = async () => {
-    const token = localStorage.getItem('access_token');
+    const token = keycloak.token;
     if (!token) return null;
 
     try {
-        const signedJwt = jwtDecode(token);
+        const signedJwt = keycloak.tokenParsed;
         const response = await gateway.get(`${BASE_URL}/${signedJwt.sub}`);
         const rs = response?.data?.result;
         if (rs) {
