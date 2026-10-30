@@ -9,9 +9,7 @@ import feign.QueryMap;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
 
 @FeignClient(name = "laptopshop-identity", url = "${app.keycloak-url}")
 public interface KeyCloakClient {
@@ -27,4 +25,11 @@ public interface KeyCloakClient {
     @PostMapping(value = "/realms/laptopshop/protocol/openid-connect/token",
             consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
     UserTokenExchangeResponse exchangeUserToken(@QueryMap UserTokenExchangeRequest request);
+
+    @PutMapping(value = "/admin/realms/laptopshop/users/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    Object updateUser(
+            @PathVariable String id,
+            @RequestHeader("Authorization") String token,
+            @RequestBody CreateKeyCloakUserRequest request
+    );
 }

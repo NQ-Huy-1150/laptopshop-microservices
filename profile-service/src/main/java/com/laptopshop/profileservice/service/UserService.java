@@ -122,6 +122,7 @@ public class UserService {
     public UserUpdateResponse update(UserUpdateRequest request) {
         User user = this.userRepository.findById(request.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        var data = keyCloakClient.updateUser();
         user.setFirstName(request.getFirstName());
         user.setLastName(request.getLastName());
         user.setDob(request.getDob());
